@@ -231,7 +231,7 @@ body {
     }
     
     .container {
-        padding: 15px;
+        padding: 0px;
     }
     
     .informasi-content {
@@ -263,7 +263,7 @@ body {
 
 @media (max-width: 480px) {
     body {
-        padding: 12px;
+        padding: 0px;
     }
     
     .informasi-content h2 {

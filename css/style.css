@@ -37,7 +37,7 @@ body{
 }
 
 .card{
-  padding:16px;
+  padding:5px;
 }
 
 .sholat-list .row{
@@ -76,7 +76,7 @@ body{
 
 /* ===== KALENDER ===== */
 .calendar-card{
-  padding:14px;
+  margin-top: 15px;
 }
 
 /* Header */
@@ -1090,4 +1090,12 @@ h4 {
   text-align: center;
   margin-top: 20px;
   margin-bottom: 10px;
+}
+
+.hisab-list .row{
+  display:flex;
+  justify-content:space-between;
+  padding:6px 0;
+  border-bottom:1px solid #222;
+  font-size:13px;
 }
