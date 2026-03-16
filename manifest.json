@@ -1,9 +1,10 @@
 {
-  "name": "Syamsul Lail 168360",
-  "short_name": "Syamsul Lail",
-  "description": "Syamsul Lail 168360 Adalah aplikasi web yang memberikan anda pengalaman dalam mempelajari ilmu falak atau hisab dan juga memberikan fitur perhitungan falak atau hisab untuk membandingkan perhitungan hisab kalian.",
+  "name": "Digital Falak 168",
+  "short_name": "DF 168",
+  "description": "Digital Falak 168360 Adalah aplikasi web yang memberikan anda pengalaman dalam mempelajari ilmu falak atau hisab dan juga memberikan fitur perhitungan falak atau hisab untuk membandingkan perhitungan hisab kalian.",
   "start_url": "index.html",
   "display": "standalone",
+  "display_override": ["fullscreen", "standalone"],
   "background_color": "#000000",
   "theme_color": "#0d1117",
   "scope": "/",
@@ -12,25 +13,25 @@
   "categories": ["education", "productivity", "books"],
   "icons": [
     {
-      "src": "assets/icons/favicon-16x16.png",
+      "src": "assets/favicon_io/favicon-16x16.png",
       "sizes": "16x16",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/icons/favicon-32x32.png",
+      "src": "assets/favicon_io/favicon-32x32.png",
       "sizes": "32x32",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/icons/android-chrome-192x192.png",
+      "src": "assets/favicon_io/android-chrome-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/icons/android-chrome-512x512.png",
+      "src": "assets/favicon_io/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

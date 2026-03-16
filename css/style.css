@@ -30,6 +30,16 @@ body{
   padding-bottom:80px;
 }
 
+
+#app {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto; /* Untuk konten yang bisa di-scroll */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling di iOS */
+}
+
+/* Untuk menangani safe area di notched devices */
+
 .container{
   max-width:420px;
   margin:auto;
