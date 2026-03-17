@@ -1299,7 +1299,16 @@ let hissohsaah = lookupHissohsaah.find(range => hasilAkhirKhosoh3 >= range.min).
   let jkt2 = jkt <= 0 ? jkt + 168 : jkt;
 // Jika longitude user lebih besar dari longitude jakarta maka posisi user berada di timuran jakarta seperti daerah cianjur, waktu lebih lambat.
 // Jika kurang maka di baratan jakarta seperti daerah tangerang, waktu lebih cepat.
-
+  let bujurJakartaBarat = 106.37833; // 106° 22' 42" (batas barat Jakarta)
+  let bujurJakartaTimur = 106.97167;  // 106° 58' 18" (batas timur Jakarta)
+  let arah;
+  if (koorlong > bujurJakartaTimur) {
+    arah = 'Timuran Jakarta (+)';
+  } else if (koorlong < bujurJakartaBarat) {
+    arah = 'Baratan Jakarta (-)';
+  } else {
+    arah = 'Rentang wilayah Jakarta (0)';
+  }
   let selisihwaktu = (koorlong -106.81666) /15;
   let bittatbieq = jkt2  +selisihwaktu +1;
   
@@ -1759,9 +1768,10 @@ const bulanHijriyah = ["Dzul Hijjah", "Muharom", "Sopar", "Robiul Awal", "Robius
     <div class="row"><span>Thuul Syams</span><span>${toBurujDMS(thulsyamsi2)}</span></div>
     <div class="row"><span>Hissoh Saah (Tabel)</span><span>${toDMS(hissohsaah)}</span></div>
     <div class="row"><span>Ta'dil Alamah</span><span>${toDMS(tadilalamah2)}</span></div>
-    <div class="row"><span>Alamah Muadalah JKT</span><span>${toHariJMD(jkt2)}</span></div>
+    <div class="row"><span>Alamah Muadalah Jakarta</span><span>${toHariJMD(jkt2)}</span></div>
     <div class="row"><span>Thul Balad / Longitude</span><span>${toDMS(koorlong)}</span></div>
-    <div class="row"><span>Selisih Waktu</span><span>${toJMD(selisihwaktu)}</span></div>
+    <div class="row"><span>Selisih Waktu </span><span>${toJMD(selisihwaktu)}</span></div>
+    <div class="row"><span>Arah Wilayah Lokal </span><span>${arah}</span></div>
     <div class="row"><span>Alamah Muadalah - Ihtiyath +1 Jam</span><span>${toHariJMD(bittatbieq)}</span></div>
     <div class="row"><span>Yaqoul Ijtima</span><span>${indexYaqoulijtima}<sup>h</sup> ${yaqoulijtima}</span></div>
     <div class="row"><span>Arudh Balad / Latitude</span><span>${toDMS(koorlat)}</span></div> 
