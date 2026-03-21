@@ -103,16 +103,16 @@ function hitungSholat(lat, lon, tz, settings) {
     : 0;
 
   // Perhitungan waktu sholat
-  const subuh = dz - hourAngle(lat, δ, -20 - dipH) / 15 + iht;
-  const terbit = dz - hourAngle(lat, δ, -1 - dipH) / 15 - iht;
-  const dhuha = terbit + (4.5 / 15) + iht; // 4.5° setelah terbit
+  // Koreksi ketinggian hanya untuk maghrib
+  const subuh = dz - hourAngle(lat, δ, -20) / 15 + iht;
+  const imsak = subuh - 10 / 60;
+  const terbit = dz - hourAngle(lat, δ, -1) / 15 - iht;
+  const dhuha = terbit + (4.5 / 15) + iht;
   const maghrib = dz + hourAngle(lat, δ, -1 - dipH) / 15 + iht;
-  const isya = dz + hourAngle(lat, δ, -18 - dipH) / 15 + iht;
-
+  const isya = dz + hourAngle(lat, δ, -18) / 15 + iht;
+  
   const asAlt = r2d(Math.atan(1 / (1 + Math.tan(Math.abs(d2r(lat - δ))))));
   const ashar = dz + hourAngle(lat, δ, asAlt) / 15 + iht;
-
-  const imsak = subuh - 10 / 60;
 
   return {
     imsak: time(imsak),
