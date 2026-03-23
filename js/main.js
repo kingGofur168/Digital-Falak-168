@@ -86,9 +86,9 @@ function dip(h) {
   return 0.0293 * Math.sqrt(h);
 }
 
-// ============================================
+// ==========================================
 // HITUNG JADWAL SHOLAT
-// ============================================
+// ==========================================
 function hitungSholat(lat, lon, tz, settings) {
   const d = new Date();
   const jd = julianDay(d.getFullYear(), d.getMonth() + 1, d.getDate());
@@ -133,9 +133,9 @@ function updateSholatUI(j) {
   }
 }
 
-// ============================================
+// ==========================================
 // NEXT SHOLAT & COUNTDOWN
-// ============================================
+// ==========================================
 function getNextSholat(jadwal) {
   const urutan = [
     { id: 'imsak', label: 'Imsak' },
@@ -200,9 +200,9 @@ function startCountdown(jadwal) {
   }, 1000);
 }
 
-// ============================================
+// ==========================================
 // KALENDER & HIJRIYAH
-// ============================================
+// ==========================================
 const namaBulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 const pasaran = ['Legi', 'Pahing', 'Pon', 'Wage', 'Kliwon'];
 const namaBulanHijri = [
@@ -216,6 +216,13 @@ const hijriMonthLengths = {
   1446: [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 29, 29],
   1447: [30, 29, 30, 29, 30, 30, 30, 30, 29, 30, 29, 29],
   1448: [30, 29, 29, 30, 30, 29, 30, 30, 30, 29, 30, 29],
+  1449: [29, 30, 29, 29, 30, 29, 30, 30, 30, 29, 30, 30],
+  1450: [29, 29, 30, 29, 29, 30, 29, 30, 30, 29, 30, 30],
+  1451: [29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30],
+  1452: [29, 30, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30],
+  1453: [30, 29, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30],
+  1454: [30, 29, 30, 29, 30, 30, 29, 30, 30, 29, 30, 29],
+  1454: [29, 30, 29, 30, 29, 30, 30, 29, 30, 30, 29, 30]
 };
 
 // Fungsi untuk mendapatkan panjang bulan dengan fallback yang lebih baik
@@ -1148,7 +1155,7 @@ let hasilAkhirMarkaz3 = Math.round(hasilAkhirMarkaz2);
 
 
 let tahunYangDimaksud = totaltahunmajmuah + totaltahunmabsutoh + (totalbulan <= 1 ? 1 : 0);
-const bulanList = ["Muharom", "Sopar", "Robi'ul Awal", "Robi'ust Stani", "Jumadil Awal", "Jumadist Stani", "Rojab", "Sya'ban", "Romadhon", "Syawal", "Dzul Qo'dah", "Dzul Hijjah"];
+const bulanList = ["Muharom", "Sopar", "Robiul Awal", "Robiul Akhir", "Jumadil Awal", "Jumadil Akhir", "Rojab", "Sya'ban", "Romadhon", "Syawal", "Dzul Qo'dah", "Dzul Hijjah"];
 
 let bulanYangDimaksud = bulanList[totalbulan - 1] || "Invalid";
   
@@ -1743,7 +1750,7 @@ let jmipa = irtipa;
 let jmmks = mukstulhilal;
 let qnh = nurilhilal;
 
-const bulanHijriyah = ["Dzul Hijjah", "Muharom", "Sopar", "Robiul Awal", "Robius Stani","Jumadil Awal", "Jumadis Stani", "Rojab", "Syaban", "Rhomadhon","Syawal", "Dzulqodah"];let namebulan = bulanHijriyah[(totalbulan - 1 + 12) % 12];
+const bulanHijriyah = ["Dzul Hijjah", "Muharom", "Sopar", "Robiul Awal", "Robiul Akhir","Jumadil Awal", "Jumadil Akhir", "Rojab", "Syaban", "Rhomadhon","Syawal", "Dzulqodah"];let namebulan = bulanHijriyah[(totalbulan - 1 + 12) % 12];
 
 // KOREKSI WAKTU MAGHBRIB DAN ZAWAL
 
