@@ -1,6 +1,6 @@
-// ============================================
+// ==========================================
 // KONFIGURASI & SETTINGS
-// ============================================
+// ==========================================
 const lokasi = {lat: -6.786, lon: 107.173, tz: 7};
 let today = new Date();
 let currentMonth = today.getMonth();
@@ -28,9 +28,9 @@ function timeToSeconds(t) {
 
 function pad(n) { return String(n).padStart(2, '0'); }
 
-// ============================================
+// ==========================================
 // HISAB FUNCTIONS
-// ============================================
+// ==========================================
 function julianDay(y, m, d) {
   // Menggunakan UTC midday untuk akurasi
   const date = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
@@ -463,7 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     
-    const v = prompt('Masukkan ketinggian tempat', settings.altitude);
+    const v = prompt('Masukkan ketinggian tempat untuk koreksi waktu maghrib', settings.altitude);
     if (v === null || isNaN(v)) return;
     
     settings.altitude = Number(v);
@@ -1434,6 +1434,34 @@ const dataKonversi = {
         10: "Legi, 10 Maret 2027",
         11: "Kliwon, 8 April 2027",
         12: "Kliwon 8 Mei 2027"
+    },
+    1449: {
+        1: "Wage, 6 juni 2027",
+        2: "Pon, 5 Juli 2027",
+        3: "Pon, 4 Agustus 2027",
+        4: "Pahing, 2 September 2027",
+        5: "Legi, 1 Oktober 2027",
+        6: "Legi, 31 Oktober 2027",
+        7: "Kliwon, 29 November 2027",
+        8: "Kliwon, 29 Desember 2027",
+        9: "Kliwon, 28 Januari 2028",
+        10: "Kliwon, 27 Februari 2028",
+        11: "Wage, 27 Maret 2028",
+        12: "Wage, 26 April 2028"
+    },
+    1450: {
+        1: "Wage, 26 Mei 2028",
+        2: "Pon, 24 Juni 2028",
+        3: "Pahing, 23 juli 2028",
+        4: "Pahing, 22 Agustus",
+        5: "Legi, 20 September 2028",
+        6: "Kliwon, 19 Oktober 2028",
+        7: "Kliwon, 18 November 2028",
+        8: "Wage, 17 Desember 2028",
+        9: "Wage, 16 Januari 2029",
+        10: "Wage, 15 Februari 2029",
+        11: "Pon, 16 Maret 2029",
+        12: "Pon, 16 April 2029"
     }
 };
 
@@ -1455,7 +1483,7 @@ let hasilTanggalMasehi = getTanggalMasehi(tmM, bmM);
     
     
     
-    // ===============================
+// ===============================
 // KONVERSI SUDUT & WAKTU
 // ===============================
 
