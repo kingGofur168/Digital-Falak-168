@@ -186,10 +186,19 @@ body{
 }
 
 /* Hari ini */
-.day.today{
-  background:linear-gradient(13deg,#161b22,#000);
-  color:#fff;
-  border-radius: 90%;
+.day.today {
+  position: relative;
+}
+
+.day.today::after {
+  content: '';
+  position: absolute;
+  right: 4px;
+  top: 6px;
+  width: 1px;
+  height: 12px;
+  background: #926919;
+  border-radius: 50%;
 }
 
 .day.today .hijri,
