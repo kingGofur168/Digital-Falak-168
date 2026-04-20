@@ -290,6 +290,347 @@ function getPasaran(date) {
   return pasaran[(diff % 5 + 5) % 5];
 }
 
+
+/*
+LIBUR NASIONAL (TANGGAL TETAP)
+
+01 Januari - Tahun Baru Masehi
+01 Mei - Hari Buruh Internasional
+01 Juni - Hari Lahir Pancasila
+17 Agustus - Hari Kemerdekaan Republik Indonesia
+25 Desember - Hari Raya Natal
+
+
+HARI BESAR ISLAM (TANGGAL HIJRIYAH - TETAP)
+
+01 Muharram - Tahun Baru Islam
+10 Muharram - Hari Asyura
+12 Rabiul Awal - Maulid Nabi Muhammad SAW
+27 Rajab - Isra Mi'raj
+01 Ramadhan - Awal Puasa
+17 Ramadhan - Nuzulul Qur'an
+01 Syawal - Idul Fitri
+09 Dzulhijjah - Hari Arafah
+10 Dzulhijjah - Idul Adha
+*/
+
+// ========== DATA HARI LIBUR ==========
+// ========== DATA HARI LIBUR ==========
+const islamicHolidaysHijri = [
+    { month: 1, day: 1, name: 'Tahun Baru Islam' },
+    { month: 1, day: 10, name: 'Hari Asyura' },
+    { month: 3, day: 12, name: 'Maulid Nabi' },
+    { month: 7, day: 27, name: 'Isra Mi\'raj' },
+    { month: 8, day: 15, name: 'Nisfu Sya\'ban' },
+    { month: 9, day: 1, name: 'Awal Ramadhan' },
+    { month: 10, day: 1, name: 'Idul Fitri' },
+    { month: 10, day: 2, name: 'Idul Fitri Hari ke-2' },
+    { month: 12, day: 10, name: 'Idul Adha' },
+    { month: 12, day: 11, name: 'Tasyriq' },
+    { month: 12, day: 12, name: 'Tasyriq' }
+];
+
+const fixedNationalHolidays = {
+    '01-01': 'Tahun Baru Masehi',
+    '05-01': 'Hari Buruh',
+    '06-01': 'Hari Lahir Pancasila',
+    '08-17': 'Hari Kemerdekaan RI',
+    '12-25': 'Hari Raya Natal'
+};
+
+
+const islamicToNational = {
+// Mapping hari Islam ke libur nasional
+};
+
+// ========== STATE SETTING ==========
+let calendarSettings = {
+    nationalHoliday: true,
+    islamicHoliday: true
+};
+
+// ========== FORMAT TANGGAL ==========
+function formatDateString(year, month, day) {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+// ========== GET NATIONAL HOLIDAYS UNTUK TAHUN TERTENTU ==========
+function getNationalHolidays(year) {
+    const result = {};
+    
+    // Fixed Masehi holidays
+    Object.entries(fixedNationalHolidays).forEach(([mmdd, name]) => {
+        const [month, day] = mmdd.split('-');
+        result[`${year}-${month}-${day}`] = name;
+    });
+    
+    return result;
+}
+
+// ========== GET ISLAMIC HOLIDAYS (KONVERSI HIJRI KE MASEHI) ==========
+function getIslamicHolidaysForYear(hijriYear) {
+    const result = {};
+    
+    // Cari 1 Muharram
+    let currentDate = new Date(hijriAnchor.startDate);
+    while (true) {
+        const h = getHijri(currentDate);
+        if (h.year === hijriYear && h.month === 1 && h.day === 1) break;
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    // Generate semua hari besar
+    islamicHolidaysHijri.forEach(holiday => {
+        let date = new Date(currentDate);
+        date.setMonth(date.getMonth() + (holiday.month - 1));
+        date.setDate(date.getDate() + (holiday.day - 1));
+        
+        const dateString = formatDateString(date.getFullYear(), date.getMonth(), date.getDate());
+        result[dateString] = holiday.name;
+    });
+    
+    return result;
+}
+
+// ========== GABUNGKAN SEMUA HOLIDAY ==========
+function getAllHolidaysForDate(date) {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+    const dateString = formatDateString(year, month, day);
+    
+    const result = { national: null, islamic: null };
+    
+    // Cek libur nasional fixed
+    const mmdd = `${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    if (calendarSettings.nationalHoliday && fixedNationalHolidays[mmdd]) {
+        result.national = fixedNationalHolidays[mmdd];
+    }
+    
+    // Cek hari Islam
+    if (calendarSettings.islamicHoliday) {
+        const h = getHijri(date);
+        const islamicHoliday = islamicHolidaysHijri.find(
+            item => item.month === h.month && item.day === h.day
+        );
+        
+        if (islamicHoliday) {
+            result.islamic = islamicHoliday.name;
+            
+            // Jika juga termasuk libur nasional
+            if (calendarSettings.nationalHoliday && islamicToNational[islamicHoliday.name]) {
+                result.national = islamicToNational[islamicHoliday.name];
+            }
+        }
+    }
+    
+    return result;
+}
+
+
+function createCustomModal() {
+    const oldModal = document.getElementById('customDateModal');
+    if (oldModal) oldModal.remove();
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'customDateModal';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    `;
+    
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        background: #1e1e1e;
+        border-radius: 8px;
+        padding: 0;
+        max-width: 360px;
+        width: 90%;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        overflow: hidden;
+        border: 1px solid #333;
+    `;
+    
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    
+    setTimeout(() => overlay.style.opacity = '1', 10);
+    
+    return { overlay, modal };
+}
+
+function showDateInfo(date) {
+    const day = date.getDate();
+    const month = namaBulan[date.getMonth()];
+    const year = date.getFullYear();
+    
+    const dayNames = ['Ahad', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const dayName = dayNames[date.getDay()];
+    
+    const h = getHijri(date);
+    const hijriMonthName = namaBulanHijri[h.month - 1];
+    const pasaranName = getPasaran(date);
+    
+    const holidays = getAllHolidaysForDate(date);
+    
+    const { overlay, modal } = createCustomModal();
+    
+    // Garis aksen atas
+    let accentColor = '#757575';
+    if (holidays.national) accentColor = '#ef5350';
+    else if (holidays.islamic) accentColor = '#66bb6a';
+    else if (date.getDay() === 5) accentColor = '#66bb6a';
+    
+    const accent = document.createElement('div');
+    accent.style.cssText = `
+        height: 3px;
+        background: ${accentColor};
+        width: 100%;
+    `;
+    modal.appendChild(accent);
+    
+    // Konten
+    const content = document.createElement('div');
+    content.style.padding = '20px';
+    
+    // Tanggal Masehi
+    const masehiDate = document.createElement('div');
+    masehiDate.style.cssText = `
+        font-size: 18px;
+        font-weight: 500;
+        color: #ffffff;
+        margin-bottom: 4px;
+    `;
+    masehiDate.textContent = `${dayName}, ${day} ${month} ${year}`;
+    
+    // Tanggal Hijriyah
+    const hijriDate = document.createElement('div');
+    hijriDate.style.cssText = `
+        font-size: 14px;
+        color: #9e9e9e;
+        margin-bottom: 16px;
+    `;
+    hijriDate.textContent = `${h.day} ${hijriMonthName} ${h.year}`;
+    
+    // Garis pembatas
+    const divider = document.createElement('div');
+    divider.style.cssText = `
+        height: 1px;
+        background: #333;
+        margin: 12px 0;
+    `;
+    
+    // Pasaran
+    const pasaranRow = document.createElement('div');
+    pasaranRow.style.cssText = `
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        margin-bottom: 8px;
+    `;
+    pasaranRow.innerHTML = `
+        <span style="color: #9e9e9e;">Pasaran</span>
+        <span style="color: #e0e0e0; font-weight: 500;">${pasaranName}</span>
+    `;
+    
+    content.appendChild(masehiDate);
+    content.appendChild(hijriDate);
+    content.appendChild(divider);
+    content.appendChild(pasaranRow);
+    
+    // Info Libur
+    if (holidays.national) {
+        const liburRow = document.createElement('div');
+        liburRow.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-top: 8px;
+        `;
+        liburRow.innerHTML = `
+            <span style="color: #ef5350;">Libur Nasional</span>
+            <span style="color: #e0e0e0; max-width: 200px; text-align: right;">${holidays.national}</span>
+        `;
+        content.appendChild(liburRow);
+    }
+    
+    if (holidays.islamic && !holidays.national) {
+        const islamRow = document.createElement('div');
+        islamRow.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-top: 8px;
+        `;
+        islamRow.innerHTML = `
+            <span style="color: #66bb6a;">Hari Agung Islam</span>
+            <span style="color: #e0e0e0; max-width: 200px; text-align: right;">${holidays.islamic}</span>
+        `;
+        content.appendChild(islamRow);
+    }
+    
+    modal.appendChild(content);
+    
+    // Tombol Tutup
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Tutup';
+    closeBtn.style.cssText = `
+        width: 100%;
+        padding: 14px;
+        background: transparent;
+        color: #9e9e9e;
+        border: none;
+        border-top: 1px solid #333;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+    `;
+    
+    closeBtn.onmouseover = () => {
+        closeBtn.style.background = '#2a2a2a';
+        closeBtn.style.color = '#e0e0e0';
+    };
+    closeBtn.onmouseout = () => {
+        closeBtn.style.background = 'transparent';
+        closeBtn.style.color = '#9e9e9e';
+    };
+    closeBtn.onclick = () => {
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 200);
+    };
+    
+    modal.appendChild(closeBtn);
+    
+    overlay.onclick = (e) => {
+        if (e.target === overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 200);
+        }
+    };
+    
+    const escHandler = (e) => {
+        if (e.key === 'Escape') {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 200);
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
+}
+
+// ========== MODIFIKASI renderCalendar() ==========
 function renderCalendar() {
   const daysEl = document.getElementById('calendarDays');
   if (!daysEl) return;
@@ -301,7 +642,6 @@ function renderCalendar() {
   if (monthNameEl) monthNameEl.innerText = namaBulan[currentMonth];
   if (yearNameEl) yearNameEl.innerText = currentYear;
 
-  // Header Hijriyah
   const hijriStart = getHijri(new Date(currentYear, currentMonth, 1));
   const lastDay = new Date(currentYear, currentMonth + 1, 0).getDate();
   const hijriEnd = getHijri(new Date(currentYear, currentMonth, lastDay));
@@ -320,56 +660,126 @@ function renderCalendar() {
   const hijriEl = document.getElementById('hijriMonthYear');
   if (hijriEl) hijriEl.innerText = hijriText;
 
-  // Data hari ini
   const todayDate = new Date();
   const tDate = todayDate.getDate();
   const tMonth = todayDate.getMonth();
   const tYear = todayDate.getFullYear();
 
-  // Hitung hari dalam bulan
   const firstDay = new Date(currentYear, currentMonth, 1).getDay();
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const daysInPrev = new Date(currentYear, currentMonth, 0).getDate();
 
-  // Bulan sebelumnya
   for (let i = firstDay - 1; i >= 0; i--) {
-    daysEl.innerHTML += `<div class="day empty prev"><span class="date">${daysInPrev - i}</span></div>`;
+    const dayDiv = document.createElement('div');
+    dayDiv.className = 'day empty prev';
+    dayDiv.innerHTML = `<span class="date">${daysInPrev - i}</span>`;
+    daysEl.appendChild(dayDiv);
   }
 
-  // Bulan aktif
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(currentYear, currentMonth, d);
     const h = getHijri(date);
+    const holidays = getAllHolidaysForDate(date);
 
     let cls = 'day';
     if (date.getDay() === 0) cls += ' ahad';
     if (date.getDay() === 5) cls += ' jumat';
+    
+    if (holidays.national) cls += ' national-holiday';
+    if (holidays.islamic && !holidays.national) cls += ' islamic-holiday';
 
     if (d === tDate && currentMonth === tMonth && currentYear === tYear) {
       cls += ' today';
     }
 
-    daysEl.innerHTML += `
-      <div class="${cls}">
-        <span class="date">${d}</span>
-        <span class="hijri">${toArab(h.day)}</span>
-        <span class="pasaran">${getPasaran(date)}</span>
-      </div>`;
+    const dayDiv = document.createElement('div');
+    dayDiv.className = cls;
+    dayDiv.innerHTML = `
+      <span class="date">${d}</span>
+      <span class="hijri">${toArab(h.day)}</span>
+      <span class="pasaran">${getPasaran(date)}</span>
+    `;
+    
+    // Tambah event listener untuk alert
+    dayDiv.addEventListener('click', () => showDateInfo(date));
+    
+    daysEl.appendChild(dayDiv);
   }
 
-  // Bulan berikutnya
   const totalUsed = firstDay + daysInMonth;
   const totalCell = Math.ceil(totalUsed / 7) * 7;
   const sisa = totalCell - daysEl.children.length;
 
   for (let d = 1; d <= sisa; d++) {
-    daysEl.innerHTML += `<div class="day empty next"><span class="date">${d}</span></div>`;
+    const dayDiv = document.createElement('div');
+    dayDiv.className = 'day empty next';
+    dayDiv.innerHTML = `<span class="date">${d}</span>`;
+    daysEl.appendChild(dayDiv);
   }
 }
 
-// ============================================
+// ========== INISIALISASI SETTING ==========
+function initCalendarSettings() {
+    const settingItems = document.querySelectorAll('.settings-item');
+    
+    settingItems.forEach((item) => {
+        const settingText = item.querySelector('.settings-text strong');
+        const statusSpan = item.querySelector('.settings-value span');
+        
+        if (!settingText || !statusSpan) return;
+        
+        item.style.cursor = 'pointer';
+        
+        item.addEventListener('click', () => {
+            if (settingText.textContent.includes('Hari Agung Islam')) {
+                calendarSettings.islamicHoliday = !calendarSettings.islamicHoliday;
+                statusSpan.textContent = calendarSettings.islamicHoliday ? 'Aktif' : 'Nonaktif';
+                statusSpan.style.color = calendarSettings.islamicHoliday ? '#4CAF50' : '#999';
+            } else if (settingText.textContent.includes('Hari Libur Nasional')) {
+                calendarSettings.nationalHoliday = !calendarSettings.nationalHoliday;
+                statusSpan.textContent = calendarSettings.nationalHoliday ? 'Aktif' : 'Nonaktif';
+                statusSpan.style.color = calendarSettings.nationalHoliday ? '#4CAF50' : '#999';
+            }
+            
+            renderCalendar();
+        });
+        
+        statusSpan.style.color = '#4CAF50';
+        statusSpan.style.fontWeight = '500';
+    });
+}
+
+// ========== CSS MINIMAL ==========
+function addHolidayStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .day {
+            cursor: pointer;
+        }
+        .day.national-holiday .date {
+            color: #f44336 !important;
+        }
+        .day.islamic-holiday .date {
+            color: #4caf50 !important;
+        }
+        .day.jumat .hijri {
+            color: #4caf50 !important;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// ========== INISIALISASI ==========
+document.addEventListener('DOMContentLoaded', () => {
+    addHolidayStyles();
+    initCalendarSettings();
+});
+
+
+
+// ==========================================
 // INITIALIZATION - SEMUA DALAM SATU EVENT LISTENER
-// ============================================
+// ==========================================
 document.addEventListener('DOMContentLoaded', () => {
   
   // ===== SETTINGS =====
@@ -873,16 +1283,9 @@ if (btnProsesWaktuSholat) {
     );
     const arahQiblatNorm = (arahQiblat + 360) % 360;
     
-    // =====================
-    // OUTPUT
-    // =====================// =====================
-// OUTPUT DALAM DIV TERPISAH
-// =====================
-hasilHisabWaktuSholat.innerHTML = `
 
-<!-- DIV 1: DATA DASAR -->
+hasilHisabWaktuSholat.innerHTML = `
 <div class="card hisab-list">
-  
   <div class="row">
     <span>Tanggal (d-m-y)</span>
     <span>${tanggal}-${bulan}-${tahun}</span>
@@ -903,7 +1306,8 @@ hasilHisabWaktuSholat.innerHTML = `
     <span>Zaman Julian (T)</span>
     <span>${T.toFixed(8)}</span>
   </div>
-  
+ </div>
+<div class="card hisab-list">
   <div class="row">
     <span>Julian Day (JD)</span>
     <span>${JD.toFixed(6)}</span>
@@ -950,40 +1354,39 @@ hasilHisabWaktuSholat.innerHTML = `
     <span>Zawal Syamsi (Dzuhur)</span>
     <span>${toHMS(zawal)}</span>
   </div>
+  <div class="row">
+    <span>Irtfa' Ashar</span>
+    <span>${toDMS(hAshar)}</span>
+  </div>
 </div>
 
-<!-- DIV 4: BUSUR-BUSUR -->
+
 <div class="card hisab-list">
   <div class="row">
-    <span>Nishfu Qaus Nahr (Zawal -> Maghrib)</span>
+    <span>Nishfu Qaus Nahr (Zawal -› Maghrib)</span>
     <span>${toHMS(tMaghrib)}</span>
   </div>
   <div class="row">
-    <span>Nishfu Qaus Lail (M <--> S) ÷2 WIB</span>
+    <span>Nishfu Qausil Lail (Maghrib ‹-› Subuh)</span>
     <span>${toHMS(nishfuLail)}</span>
   </div>
   <div class="row">
-    <span>Qaus Isya (Zawal -> Isya)</span>
+    <span>Qaus Isya (Zawal -› Isya)</span>
     <span>${toHMS(tIsya)}</span>
   </div>
   
   <div class="row">
-    <span>Qaus Subuh (Subuh -> Zawal)</span>
+    <span>Qaus Subuh (Subuh -› Zawal)</span>
     <span>${toHMS(tSubuh)}</span>
   </div>
   
   <div class="row">
-    <span>Budul Qutr --> (Irtfa Ashar)</span>
-    <span>${toDMS(hAshar)}</span>
-  </div>
-  
-  <div class="row">
-    <span>Qaus Ashar (Zawal -> Ashar)</span>
+    <span>Qaus Ashar (Zawal -› Ashar)</span>
     <span>${toHMS(tAshar)}</span>
   </div>
 </div>
 
-<!-- DIV 5: WAKTU SHOLAT -->
+
 <div class="card hisab-list">
   <div class="row">
     <span>Subuh</span>
@@ -1022,7 +1425,7 @@ hasilHisabWaktuSholat.innerHTML = `
   
 </div>
 
-<!-- DIV 6: ARAH KIBLAT -->
+
 <div class="card hisab-list">
   <div class="row">
     <span>Lintang Ka'bah (φ)</span>
@@ -1040,13 +1443,8 @@ hasilHisabWaktuSholat.innerHTML = `
   </div>
   
   <div class="row">
-    <span>Arah Kiblat</span>
-    <span>${toDMS(arahQiblatNorm)} dari Utara</span>
-  </div>
-  
-  <div class="row">
-    <span>Azimuth Ka'bah</span>
-    <span>${arahQiblatNorm.toFixed(2)}°</span>
+    <span>Arah Kiblat (Q)</span>
+    <span>${toDMS(arahQiblatNorm)}</span>
   </div>
 </div>
 
@@ -2043,7 +2441,7 @@ if (btnHitungHari) {
         const birthDateObj = new Date(birthdate);
         const currentDate = new Date();
         const timeDifference = currentDate - birthDateObj;
-        const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24)+1);
+        const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
         resultDays.value = daysDifference;
 
         // Calculate years, months, and days

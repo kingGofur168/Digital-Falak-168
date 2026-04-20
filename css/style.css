@@ -182,11 +182,6 @@ body{
   color:#ffffff;
 }
 
-/* Jumat & Ahad */
-.day.jumat .date{
-  color:var(--accent);
-}
-
 .day.ahad .date{
   color:#f87171;
 }
