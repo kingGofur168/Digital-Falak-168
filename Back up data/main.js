@@ -1,184 +1,282 @@
-const settings = {
-  ihtiyat: Number(localStorage.getItem('ihtiyat')) || 0
-};
-// CIANJUR lat: -6.786 long: 107.173
+// ==========================================
+// KONFIGURASI & SETTINGS
+// ==========================================
 const lokasi = {lat: -6.786, lon: 107.173, tz: 7};
-
 let today = new Date();
 let currentMonth = today.getMonth();
-let currentYear  = today.getFullYear();
+let currentYear = today.getFullYear();
 
+// UTILITY FUNCTIONS
 const d2r = d => d * Math.PI / 180;
 const r2d = r => r * 180 / Math.PI;
 
-function time(x){
+function time(x) {
   x = (x + 24) % 24;
   let h = Math.floor(x);
-  let m = Math.round((x - h) * 60);
-  if(m === 60){ h++; m = 0; }
-  return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+  let m = Math.ceil((x - h) * 60);
+  if (m === 60) {
+    h = (h + 1) % 24;
+    m = 0;
+  }
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
 }
 
-function timeToSeconds(t){
-  const [h,m] = t.split(':').map(Number);
-  return h*3600 + m*60;
+function timeToSeconds(t) {
+  const [h, m] = t.split(':').map(Number);
+  return h * 3600 + m * 60;
 }
 
-function pad(n){ return String(n).padStart(2,'0'); }
+function pad(n) { return String(n).padStart(2, '0'); }
 
-/* ====================================================
-   JADWAL SHOLAT
-==================================================== */
-function julianDay(y,m,d){
-  if(m<=2){ y--; m+=12; }
-  const A = Math.floor(y/100);
-  const B = 2 - A + Math.floor(A/4);
-  return Math.floor(365.25*(y+4716))
-       + Math.floor(30.6001*(m+1))
-       + d + B - 1524.5;
+// ==========================================
+// HISAB FUNCTIONS
+// ==========================================
+function julianDay(y, m, d) {
+  // Menggunakan UTC midday untuk akurasi
+  const date = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth() + 1;
+  const day = date.getUTCDate();
+  
+  let Y = year;
+  let M = month;
+  if (M <= 2) {
+    Y--;
+    M += 12;
+  }
+  const A = Math.floor(Y / 100);
+  const B = 2 - A + Math.floor(A / 4);
+  return Math.floor(365.25 * (Y + 4716)) +
+         Math.floor(30.6001 * (M + 1)) +
+         day + B - 1524.5;
 }
 
-function solar(jd){
-  const T = (jd - 2451545)/36525;
-  const L = (280.46646 + 36000.76983*T) % 360;
-  const g = 357.52911 + 35999.05029*T;
-  const C = (1.914602 - 0.004817*T) * Math.sin(d2r(g))
-          + 0.019993 * Math.sin(d2r(2*g));
+function solar(jd) {
+  const T = (jd - 2451545) / 36525;
+  const L = (280.46646 + 36000.76983 * T) % 360;
+  const g = 357.52911 + 35999.05029 * T;
+
+  const C = (1.914602 - 0.004817 * T) * Math.sin(d2r(g)) +
+           0.019993 * Math.sin(d2r(2 * g));
+
   const λ = L + C;
-  const ε = 23.439291 - 0.0130042*T;
-  const δ = r2d(Math.asin(Math.sin(d2r(ε))*Math.sin(d2r(λ))));
+  const ε = 23.439291 - 0.0130042 * T;
+
+  const δ = r2d(Math.asin(Math.sin(d2r(ε)) * Math.sin(d2r(λ))));
+
   const EoT = 4 * r2d(
-    Math.tan(d2r(ε/2))**2 * Math.sin(d2r(2*L))
-    - 2*0.016708*Math.sin(d2r(g))
+    Math.tan(d2r(ε / 2)) ** 2 * Math.sin(d2r(2 * L)) -
+    2 * 0.016708 * Math.sin(d2r(g))
   );
+
   return { δ, EoT };
 }
 
-function hourAngle(lat,δ,h){
-  return r2d(Math.acos(
-    (Math.sin(d2r(h))
-    - Math.sin(d2r(lat))*Math.sin(d2r(δ)))
-    / (Math.cos(d2r(lat))*Math.cos(d2r(δ)))
-  ));
+function hourAngle(lat, δ, h) {
+  let value = (Math.sin(d2r(h)) - Math.sin(d2r(lat)) * Math.sin(d2r(δ))) /
+              (Math.cos(d2r(lat)) * Math.cos(d2r(δ)));
+  
+  // Clamp value ke range [-1, 1] untuk menghindari NaN
+  value = Math.max(-1, Math.min(1, value));
+  
+  return r2d(Math.acos(value));
 }
 
-function hitungSholat(lat,lon,tz){
+function dip(h) {
+  return 0.0293 * Math.sqrt(h);
+}
+
+// ==========================================
+// HITUNG JADWAL SHOLAT
+// ==========================================
+function hitungSholat(lat, lon, tz, settings) {
   const d = new Date();
-  const jd = julianDay(d.getFullYear(), d.getMonth()+1, d.getDate());
+  const jd = julianDay(d.getFullYear(), d.getMonth() + 1, d.getDate());
   const { δ, EoT } = solar(jd);
 
-  const dz = 12 + tz - lon/15 - EoT/60;
+  const dz = 12 + tz - lon / 15 - EoT / 60;
   const iht = settings.ihtiyat / 60;
 
-  const subuh   = dz - hourAngle(lat,δ,-20)/15 + iht;
-  const terbit  = dz - hourAngle(lat,δ,-1)/15 - iht;
-  const dhuha   = dz - hourAngle(lat,δ,4.5)/15; + iht;
-  const maghrib = dz + hourAngle(lat,δ,-1)/15 + iht;
-  const isya    = dz + hourAngle(lat,δ,-18)/15 + iht;
+  // Koreksi ketinggian
+  const dipH = (settings.useAltitude && settings.altitude > 0) 
+    ? dip(settings.altitude) 
+    : 0;
 
-  const asAlt = r2d(Math.atan(1/(1+Math.tan(Math.abs(d2r(lat-δ))))));
-  const ashar = dz + hourAngle(lat,δ,asAlt)/15 + iht;
-  const imsak = subuh - 10/60;
+  // Perhitungan waktu sholat
+  // Koreksi ketinggian hanya untuk maghrib
+  const subuh = dz - hourAngle(lat, δ, -20) / 15 + iht;
+  const imsak = subuh - 10 / 60;
+  const terbit = dz - hourAngle(lat, δ, -1) / 15 - iht;
+  const dhuha = terbit + (4.5 / 15) + iht;
+  const maghrib = dz + hourAngle(lat, δ, -1 - dipH) / 15 + iht;
+  const isya = dz + hourAngle(lat, δ, -18) / 15 + iht;
+  
+  const asAlt = r2d(Math.atan(1 / (1 + Math.tan(Math.abs(d2r(lat - δ))))));
+  const ashar = dz + hourAngle(lat, δ, asAlt) / 15 + iht;
 
   return {
-    imsak  : time(imsak),
-    subuh  : time(subuh),
-    terbit : time(terbit),
-    dhuha  : time(dhuha),
-    dzuhur : time(dz + iht),
-    ashar  : time(ashar),
+    imsak: time(imsak),
+    subuh: time(subuh),
+    terbit: time(terbit),
+    dhuha: time(dhuha),
+    dzuhur: time(dz + iht),
+    ashar: time(ashar),
     maghrib: time(maghrib),
-    isya   : time(isya)
+    isya: time(isya)
   };
 }
 
-function updateSholatUI(j){
-  for(let k in j){
+function updateSholatUI(j) {
+  for (let k in j) {
     const el = document.getElementById(k);
-    if(el) el.innerText = j[k];
+    if (el) el.innerText = j[k];
   }
 }
 
-/* ====================================================
-   NEXT SHOLAT & COUNTDOWN
-==================================================== */
-function getNextSholat(j){
+// ==========================================
+// NEXT SHOLAT & COUNTDOWN
+// ==========================================
+function getNextSholat(jadwal) {
   const urutan = [
-    ['subuh','Subuh'],['terbit','Terbit'],['dhuha','Dhuha'],
-    ['dzuhur','Dzuhur'],['ashar','Ashar'],
-    ['maghrib','Maghrib'],['isya','Isya']
+    { id: 'imsak', label: 'Imsak' },
+    { id: 'subuh', label: 'Subuh' },
+    { id: 'terbit', label: 'Terbit' },
+    { id: 'dhuha', label: 'Dhuha' },
+    { id: 'dzuhur', label: 'Dzuhur' },
+    { id: 'ashar', label: 'Ashar' },
+    { id: 'maghrib', label: 'Maghrib' },
+    { id: 'isya', label: 'Isya' }
   ];
 
   const now = new Date();
-  const nowSec = now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds();
-
-  for(let [k,l] of urutan){
-    if(timeToSeconds(j[k]) > nowSec){
-      return { label:l, time:j[k], tomorrow:false };
+  const nowSec = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+  
+  // Cari waktu sholat berikutnya
+  for (let item of urutan) {
+    const waktuSec = timeToSeconds(jadwal[item.id]);
+    if (waktuSec > nowSec) {
+      return {
+        label: item.label,
+        time: jadwal[item.id],
+        tomorrow: false
+      };
     }
   }
-  return { label:'Subuh', time:j.subuh, tomorrow:true };
+  
+  // Jika semua sudah lewat, ambil subuh besok
+  return {
+    label: 'Subuh',
+    time: jadwal.subuh,
+    tomorrow: true
+  };
 }
 
-function startCountdown(j){
-  setInterval(()=>{
-    const next = getNextSholat(j);
+let countdownInterval = null;
+
+function startCountdown(jadwal) {
+  // Hapus interval lama jika ada
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+  }
+  
+  countdownInterval = setInterval(() => {
+    const next = getNextSholat(jadwal);
     const now = new Date();
     const target = new Date();
-    const [h,m] = next.time.split(':').map(Number);
-    target.setHours(h,m,0,0);
-    if(next.tomorrow) target.setDate(target.getDate()+1);
+    
+    const [h, m] = next.time.split(':').map(Number);
+    target.setHours(h, m, 0, 0);
+    if (next.tomorrow) target.setDate(target.getDate() + 1);
 
-    let diff = Math.max(0, Math.floor((target-now)/1000));
-    const hh = Math.floor(diff/3600);
-    const mm = Math.floor((diff%3600)/60);
-    const ss = diff%60;
+    let diff = Math.max(0, Math.floor((target - now) / 1000));
+    const hh = Math.floor(diff / 3600);
+    const mm = Math.floor((diff % 3600) / 60);
+    const ss = diff % 60;
 
     const n = document.getElementById('nextSholatName');
     const c = document.getElementById('countdownTime');
-    if(n) n.innerText = `${next.label} ${next.time}`;
-    if(c) c.innerText = `- ${pad(hh)}:${pad(mm)}:${pad(ss)}`;
-  },1000);
+    if (n) n.innerText = `${next.label} ${next.time}`;
+    if (c) c.innerText = `- ${pad(hh)}:${pad(mm)}:${pad(ss)}`;
+  }, 1000);
 }
 
-/* ====================================================
-   KALENDER + HIJRIYAH + PASARAN (FULL GRID)
-==================================================== */
-const namaBulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-const pasaran   = ['Legi','Pahing','Pon','Wage','Kliwon'];
+// ==========================================
+// KALENDER & HIJRIYAH
+// ==========================================
+const namaBulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+const pasaran = ['Legi', 'Pahing', 'Pon', 'Wage', 'Kliwon'];
+const namaBulanHijri = [
+  'محرم', 'صفر', 'ربيع الأول', 'ربيع الآخر',
+  'جمادى الأولى', 'جمادى الآخرة', 'رجب', 'شعبان',
+  'رمضان', 'شوال', 'ذو القعدة', 'ذو الحجة'
+];
 
+// Data hisab untuk tahun Hijriyah
 const hijriMonthLengths = {
-  1446:[30,29,30,29,30,29,30,29,30,29,29,29],
-  1447:[30,29,30,29,30,30,30,30,29,29,30,30]
+  1446: [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 29, 29],
+  1447: [30, 29, 30, 29, 30, 30, 30, 30, 29, 30, 29, 29],
+  1448: [30, 29, 29, 30, 30, 29, 30, 30, 30, 29, 30, 29],
+  1449: [29, 30, 29, 29, 30, 29, 30, 30, 30, 29, 30, 30],
+  1450: [29, 29, 30, 29, 29, 30, 29, 30, 30, 29, 30, 30],
+  1451: [29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30],
+  1452: [29, 30, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30],
+  1453: [30, 29, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30],
+  1454: [30, 29, 30, 29, 30, 30, 29, 30, 30, 29, 30, 29],
+  1454: [29, 30, 29, 30, 29, 30, 30, 29, 30, 30, 29, 30]
 };
+
+// Fungsi untuk mendapatkan panjang bulan dengan fallback yang lebih baik
+function getHijriMonthLength(year, month) {
+  // Coba dapatkan dari data yang ada
+  if (hijriMonthLengths[year] && hijriMonthLengths[year][month - 1]) {
+    return hijriMonthLengths[year][month - 1];
+  }
+  
+  // Fallback: hisab sederhana (bergantian 30/29)
+  // Bulan ganjil = 30, genap = 29, kecuali Dzulhijjah (bulan 12) bisa 30/29
+  if (month === 12) {
+    // Dzulhijjah: asumsi 30 untuk tahun kabisat (sederhana)
+    return (year % 30 === 0) ? 30 : 29;
+  }
+  return (month % 2 === 1) ? 30 : 29;
+}
 
 const hijriAnchor = {
-  startDate: new Date(2025,0,1),
-  day: 1, month: 7, year: 1446
+  startDate: new Date(2025, 0, 1),
+  day: 1,
+  month: 7,
+  year: 1446
 };
 
-function toArab(n){
-  const a = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
-  return String(n).replace(/\d/g,d=>a[d]);
+function toArab(n) {
+  const a = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  return String(n).replace(/\d/g, d => a[d]);
 }
 
-function getHijri(date){
-  let diff = Math.floor((date - hijriAnchor.startDate)/86400000);
+function getHijri(date) {
+  let diff = Math.floor((date - hijriAnchor.startDate) / 86400000);
   let { day, month, year } = hijriAnchor;
 
-  while(diff !== 0){
-    if(diff > 0){
-      const len = hijriMonthLengths[year]?.[month-1] || 30;
+  while (diff !== 0) {
+    if (diff > 0) {
+      const len = getHijriMonthLength(year, month);
       day++;
-      if(day > len){
-        day = 1; month++;
-        if(month > 12){ month = 1; year++; }
+      if (day > len) {
+        day = 1;
+        month++;
+        if (month > 12) {
+          month = 1;
+          year++;
+        }
       }
       diff--;
-    }else{
+    } else {
       month--;
-      if(month < 1){ month = 12; year--; }
-      const len = hijriMonthLengths[year]?.[month-1] || 30;
+      if (month < 1) {
+        month = 12;
+        year--;
+      }
+      const len = getHijriMonthLength(year, month);
       day = len;
       diff++;
     }
@@ -186,186 +284,632 @@ function getHijri(date){
   return { day, month, year };
 }
 
-function getPasaran(date){
-  const ref = new Date(2020,0,1);
-  const diff = Math.floor((date - ref)/86400000);
+function getPasaran(date) {
+  const ref = new Date(2020, 0, 1);
+  const diff = Math.floor((date - ref) / 86400000);
   return pasaran[(diff % 5 + 5) % 5];
 }
-const namaBulanHijri = [
-  'محرم', 'صفر', 'ربيع الأول', 'ربيع الآخر',
-  'جمادى الأولى', 'جمادى الآخرة', 'رجب', 'شعبان',
-  'رمضان', 'شوال', 'ذو القعدة', 'ذو الحجة'
+
+
+/*
+LIBUR NASIONAL (TANGGAL TETAP)
+
+01 Januari - Tahun Baru Masehi
+01 Mei - Hari Buruh Internasional
+01 Juni - Hari Lahir Pancasila
+17 Agustus - Hari Kemerdekaan Republik Indonesia
+25 Desember - Hari Raya Natal
+
+
+HARI BESAR ISLAM (TANGGAL HIJRIYAH - TETAP)
+
+01 Muharram - Tahun Baru Islam
+10 Muharram - Hari Asyura
+12 Rabiul Awal - Maulid Nabi Muhammad SAW
+27 Rajab - Isra Mi'raj
+01 Ramadhan - Awal Puasa
+17 Ramadhan - Nuzulul Qur'an
+01 Syawal - Idul Fitri
+09 Dzulhijjah - Hari Arafah
+10 Dzulhijjah - Idul Adha
+*/
+
+// ========== DATA HARI LIBUR ==========
+// ========== DATA HARI LIBUR ==========
+const islamicHolidaysHijri = [
+    { month: 1, day: 1, name: 'Tahun Baru Islam' },
+    { month: 1, day: 10, name: 'Hari Asyura' },
+    { month: 3, day: 12, name: 'Maulid Nabi' },
+    { month: 7, day: 27, name: 'Isra Mi\'raj' },
+    { month: 8, day: 15, name: 'Nisfu Sya\'ban' },
+    { month: 9, day: 1, name: 'Awal Ramadhan' },
+    { month: 10, day: 1, name: 'Idul Fitri' },
+    { month: 10, day: 2, name: 'Idul Fitri Hari ke-2' },
+    { month: 12, day: 10, name: 'Idul Adha' },
+    { month: 12, day: 11, name: 'Tasyriq' },
+    { month: 12, day: 12, name: 'Tasyriq' }
 ];
 
-function renderCalendar(){
+const fixedNationalHolidays = {
+    '01-01': 'Tahun Baru Masehi',
+    '05-01': 'Hari Buruh',
+    '06-01': 'Hari Lahir Pancasila',
+    '08-17': 'Hari Kemerdekaan RI',
+    '12-25': 'Hari Raya Natal'
+};
+
+
+const islamicToNational = {
+// Mapping hari Islam ke libur nasional
+};
+
+// ========== STATE SETTING ==========
+let calendarSettings = {
+    nationalHoliday: true,
+    islamicHoliday: true
+};
+
+// ========== FORMAT TANGGAL ==========
+function formatDateString(year, month, day) {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+// ========== GET NATIONAL HOLIDAYS UNTUK TAHUN TERTENTU ==========
+function getNationalHolidays(year) {
+    const result = {};
+    
+    // Fixed Masehi holidays
+    Object.entries(fixedNationalHolidays).forEach(([mmdd, name]) => {
+        const [month, day] = mmdd.split('-');
+        result[`${year}-${month}-${day}`] = name;
+    });
+    
+    return result;
+}
+
+// ========== GET ISLAMIC HOLIDAYS (KONVERSI HIJRI KE MASEHI) ==========
+function getIslamicHolidaysForYear(hijriYear) {
+    const result = {};
+    
+    // Cari 1 Muharram
+    let currentDate = new Date(hijriAnchor.startDate);
+    while (true) {
+        const h = getHijri(currentDate);
+        if (h.year === hijriYear && h.month === 1 && h.day === 1) break;
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    // Generate semua hari besar
+    islamicHolidaysHijri.forEach(holiday => {
+        let date = new Date(currentDate);
+        date.setMonth(date.getMonth() + (holiday.month - 1));
+        date.setDate(date.getDate() + (holiday.day - 1));
+        
+        const dateString = formatDateString(date.getFullYear(), date.getMonth(), date.getDate());
+        result[dateString] = holiday.name;
+    });
+    
+    return result;
+}
+
+// ========== GABUNGKAN SEMUA HOLIDAY ==========
+function getAllHolidaysForDate(date) {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+    const dateString = formatDateString(year, month, day);
+    
+    const result = { national: null, islamic: null };
+    
+    // Cek libur nasional fixed
+    const mmdd = `${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    if (calendarSettings.nationalHoliday && fixedNationalHolidays[mmdd]) {
+        result.national = fixedNationalHolidays[mmdd];
+    }
+    
+    // Cek hari Islam
+    if (calendarSettings.islamicHoliday) {
+        const h = getHijri(date);
+        const islamicHoliday = islamicHolidaysHijri.find(
+            item => item.month === h.month && item.day === h.day
+        );
+        
+        if (islamicHoliday) {
+            result.islamic = islamicHoliday.name;
+            
+            // Jika juga termasuk libur nasional
+            if (calendarSettings.nationalHoliday && islamicToNational[islamicHoliday.name]) {
+                result.national = islamicToNational[islamicHoliday.name];
+            }
+        }
+    }
+    
+    return result;
+}
+
+
+function createCustomModal() {
+    const oldModal = document.getElementById('customDateModal');
+    if (oldModal) oldModal.remove();
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'customDateModal';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    `;
+    
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        background: #1e1e1e;
+        border-radius: 8px;
+        padding: 0;
+        max-width: 360px;
+        width: 90%;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        overflow: hidden;
+        border: 1px solid #333;
+    `;
+    
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    
+    setTimeout(() => overlay.style.opacity = '1', 10);
+    
+    return { overlay, modal };
+}
+
+function showDateInfo(date) {
+    const day = date.getDate();
+    const month = namaBulan[date.getMonth()];
+    const year = date.getFullYear();
+    
+    const dayNames = ['Ahad', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const dayName = dayNames[date.getDay()];
+    
+    const h = getHijri(date);
+    const hijriMonthName = namaBulanHijri[h.month - 1];
+    const pasaranName = getPasaran(date);
+    
+    const holidays = getAllHolidaysForDate(date);
+    
+    const { overlay, modal } = createCustomModal();
+    
+    // Garis aksen atas
+    let accentColor = '#757575';
+    if (holidays.national) accentColor = '#ef5350';
+    else if (holidays.islamic) accentColor = '#66bb6a';
+    else if (date.getDay() === 5) accentColor = '#66bb6a';
+    
+    const accent = document.createElement('div');
+    accent.style.cssText = `
+        height: 3px;
+        background: ${accentColor};
+        width: 100%;
+    `;
+    modal.appendChild(accent);
+    
+    // Konten
+    const content = document.createElement('div');
+    content.style.padding = '20px';
+    
+    // Tanggal Masehi
+    const masehiDate = document.createElement('div');
+    masehiDate.style.cssText = `
+        font-size: 18px;
+        font-weight: 500;
+        color: #ffffff;
+        margin-bottom: 4px;
+    `;
+    masehiDate.textContent = `${dayName}, ${day} ${month} ${year}`;
+    
+    // Tanggal Hijriyah
+    const hijriDate = document.createElement('div');
+    hijriDate.style.cssText = `
+        font-size: 14px;
+        color: #9e9e9e;
+        margin-bottom: 16px;
+    `;
+    hijriDate.textContent = `${h.day} ${hijriMonthName} ${h.year}`;
+    
+    // Garis pembatas
+    const divider = document.createElement('div');
+    divider.style.cssText = `
+        height: 1px;
+        background: #333;
+        margin: 12px 0;
+    `;
+    
+    // Pasaran
+    const pasaranRow = document.createElement('div');
+    pasaranRow.style.cssText = `
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        margin-bottom: 8px;
+    `;
+    pasaranRow.innerHTML = `
+        <span style="color: #9e9e9e;">Pasaran</span>
+        <span style="color: #e0e0e0; font-weight: 500;">${pasaranName}</span>
+    `;
+    
+    content.appendChild(masehiDate);
+    content.appendChild(hijriDate);
+    content.appendChild(divider);
+    content.appendChild(pasaranRow);
+    
+    // Info Libur
+    if (holidays.national) {
+        const liburRow = document.createElement('div');
+        liburRow.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-top: 8px;
+        `;
+        liburRow.innerHTML = `
+            <span style="color: #ef5350;">Libur Nasional</span>
+            <span style="color: #e0e0e0; max-width: 200px; text-align: right;">${holidays.national}</span>
+        `;
+        content.appendChild(liburRow);
+    }
+    
+    if (holidays.islamic && !holidays.national) {
+        const islamRow = document.createElement('div');
+        islamRow.style.cssText = `
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-top: 8px;
+        `;
+        islamRow.innerHTML = `
+            <span style="color: #66bb6a;">Hari Agung Islam</span>
+            <span style="color: #e0e0e0; max-width: 200px; text-align: right;">${holidays.islamic}</span>
+        `;
+        content.appendChild(islamRow);
+    }
+    
+    modal.appendChild(content);
+    
+    // Tombol Tutup
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Tutup';
+    closeBtn.style.cssText = `
+        width: 100%;
+        padding: 14px;
+        background: transparent;
+        color: #9e9e9e;
+        border: none;
+        border-top: 1px solid #333;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+    `;
+    
+    closeBtn.onmouseover = () => {
+        closeBtn.style.background = '#2a2a2a';
+        closeBtn.style.color = '#e0e0e0';
+    };
+    closeBtn.onmouseout = () => {
+        closeBtn.style.background = 'transparent';
+        closeBtn.style.color = '#9e9e9e';
+    };
+    closeBtn.onclick = () => {
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 200);
+    };
+    
+    modal.appendChild(closeBtn);
+    
+    overlay.onclick = (e) => {
+        if (e.target === overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 200);
+        }
+    };
+    
+    const escHandler = (e) => {
+        if (e.key === 'Escape') {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 200);
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
+}
+
+// ========== MODIFIKASI renderCalendar() ==========
+function renderCalendar() {
   const daysEl = document.getElementById('calendarDays');
-  if(!daysEl) return;
+  if (!daysEl) return;
 
   daysEl.innerHTML = '';
 
-  document.getElementById('monthName').innerText = namaBulan[currentMonth];
-  document.getElementById('yearName').innerText  = currentYear;
+  const monthNameEl = document.getElementById('monthName');
+  const yearNameEl = document.getElementById('yearName');
+  if (monthNameEl) monthNameEl.innerText = namaBulan[currentMonth];
+  if (yearNameEl) yearNameEl.innerText = currentYear;
 
-  /* ==== HEADER HIJRI (AWAL–AKHIR) ==== */
-const hijriStart = getHijri(new Date(currentYear, currentMonth, 1));
-const lastDay    = new Date(currentYear, currentMonth + 1, 0).getDate();
-const hijriEnd   = getHijri(new Date(currentYear, currentMonth, lastDay));
+  const hijriStart = getHijri(new Date(currentYear, currentMonth, 1));
+  const lastDay = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const hijriEnd = getHijri(new Date(currentYear, currentMonth, lastDay));
 
-let hijriText;
-
-if (hijriStart.month !== hijriEnd.month) {
-  if (hijriStart.year === hijriEnd.year) {
-    hijriText =
-      namaBulanHijri[hijriStart.month - 1] +
-      ' – ' +
-      namaBulanHijri[hijriEnd.month - 1] +
-      ' ' +
-      toArab(hijriStart.year);
+  let hijriText;
+  if (hijriStart.month !== hijriEnd.month) {
+    if (hijriStart.year === hijriEnd.year) {
+      hijriText = `${namaBulanHijri[hijriStart.month - 1]} – ${namaBulanHijri[hijriEnd.month - 1]} ${toArab(hijriStart.year)}`;
+    } else {
+      hijriText = `${namaBulanHijri[hijriStart.month - 1]} ${toArab(hijriStart.year)} – ${namaBulanHijri[hijriEnd.month - 1]} ${toArab(hijriEnd.year)}`;
+    }
   } else {
-    hijriText =
-      namaBulanHijri[hijriStart.month - 1] + ' ' + toArab(hijriStart.year) +
-      ' – ' +
-      namaBulanHijri[hijriEnd.month - 1] + ' ' + toArab(hijriEnd.year);
+    hijriText = `${namaBulanHijri[hijriStart.month - 1]} ${toArab(hijriStart.year)}`;
   }
-} else {
-  hijriText =
-    namaBulanHijri[hijriStart.month - 1] +
-    ' ' +
-    toArab(hijriStart.year);
-}
 
-document.getElementById('hijriMonthYear').innerText = hijriText;
-  
-  /* =============== DATA KALENDER =============== */
+  const hijriEl = document.getElementById('hijriMonthYear');
+  if (hijriEl) hijriEl.innerText = hijriText;
 
-  const firstDay    = new Date(currentYear, currentMonth, 1).getDay();
+  const todayDate = new Date();
+  const tDate = todayDate.getDate();
+  const tMonth = todayDate.getMonth();
+  const tYear = todayDate.getFullYear();
+
+  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const daysInPrev  = new Date(currentYear, currentMonth, 0).getDate();
+  const daysInPrev = new Date(currentYear, currentMonth, 0).getDate();
 
-  /* ============= BULAN SEBELUM =============== */
-
-  for(let i = firstDay - 1; i >= 0; i--){
-    daysEl.innerHTML += `
-      <div class="day empty prev">
-        <span class="date">${daysInPrev - i}</span>
-      </div>`;
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const dayDiv = document.createElement('div');
+    dayDiv.className = 'day empty prev';
+    dayDiv.innerHTML = `<span class="date">${daysInPrev - i}</span>`;
+    daysEl.appendChild(dayDiv);
   }
 
-  /* ================= BULAN AKTIF ================= */
-
-  for(let d = 1; d <= daysInMonth; d++){
+  for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(currentYear, currentMonth, d);
     const h = getHijri(date);
+    const holidays = getAllHolidaysForDate(date);
 
     let cls = 'day';
-    if(date.getDay() === 0) cls += ' ahad';
-    if(date.getDay() === 5) cls += ' jumat';
+    if (date.getDay() === 0) cls += ' ahad';
+    if (date.getDay() === 5) cls += ' jumat';
+    
+    if (holidays.national) cls += ' national-holiday';
+    if (holidays.islamic && !holidays.national) cls += ' islamic-holiday';
 
-    daysEl.innerHTML += `
-      <div class="${cls}">
-        <span class="date">${d}</span>
-        <span class="hijri">${toArab(h.day)}</span>
-        <span class="pasaran">${getPasaran(date)}</span>
-      </div>`;
+    if (d === tDate && currentMonth === tMonth && currentYear === tYear) {
+      cls += ' today';
+    }
+
+    const dayDiv = document.createElement('div');
+    dayDiv.className = cls;
+    dayDiv.innerHTML = `
+      <span class="date">${d}</span>
+      <span class="hijri">${toArab(h.day)}</span>
+      <span class="pasaran">${getPasaran(date)}</span>
+    `;
+    
+    // Tambah event listener untuk alert
+    dayDiv.addEventListener('click', () => showDateInfo(date));
+    
+    daysEl.appendChild(dayDiv);
   }
-
-  /* ============== BULAN SESUDAH ============== */
 
   const totalUsed = firstDay + daysInMonth;
   const totalCell = Math.ceil(totalUsed / 7) * 7;
   const sisa = totalCell - daysEl.children.length;
 
-  for(let d = 1; d <= sisa; d++){
-    daysEl.innerHTML += `
-      <div class="day empty next">
-        <span class="date">${d}</span>
-      </div>`;
+  for (let d = 1; d <= sisa; d++) {
+    const dayDiv = document.createElement('div');
+    dayDiv.className = 'day empty next';
+    dayDiv.innerHTML = `<span class="date">${d}</span>`;
+    daysEl.appendChild(dayDiv);
   }
 }
 
-/* ===================================================
-   INIT + UI BINDING (AMAN)
-=================================================== */
-document.addEventListener('DOMContentLoaded',()=>{
+// ========== INISIALISASI SETTING ==========
+function initCalendarSettings() {
+    const settingItems = document.querySelectorAll('.settings-item');
+    
+    settingItems.forEach((item) => {
+        const settingText = item.querySelector('.settings-text strong');
+        const statusSpan = item.querySelector('.settings-value span');
+        
+        if (!settingText || !statusSpan) return;
+        
+        item.style.cursor = 'pointer';
+        
+        item.addEventListener('click', () => {
+            if (settingText.textContent.includes('Hari Agung Islam')) {
+                calendarSettings.islamicHoliday = !calendarSettings.islamicHoliday;
+                statusSpan.textContent = calendarSettings.islamicHoliday ? 'Aktif' : 'Nonaktif';
+                statusSpan.style.color = calendarSettings.islamicHoliday ? '#4CAF50' : '#999';
+            } else if (settingText.textContent.includes('Hari Libur Nasional')) {
+                calendarSettings.nationalHoliday = !calendarSettings.nationalHoliday;
+                statusSpan.textContent = calendarSettings.nationalHoliday ? 'Aktif' : 'Nonaktif';
+                statusSpan.style.color = calendarSettings.nationalHoliday ? '#4CAF50' : '#999';
+            }
+            
+            renderCalendar();
+        });
+        
+        statusSpan.style.color = '#4CAF50';
+        statusSpan.style.fontWeight = '500';
+    });
+}
 
+// ========== CSS MINIMAL ==========
+function addHolidayStyles() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .day {
+            cursor: pointer;
+        }
+        .day.national-holiday .date {
+            color: #f44336 !important;
+        }
+        .day.islamic-holiday .date {
+            color: #4caf50 !important;
+        }
+        .day.jumat .hijri {
+            color: #4caf50 !important;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// ========== INISIALISASI ==========
+document.addEventListener('DOMContentLoaded', () => {
+    addHolidayStyles();
+    initCalendarSettings();
+});
+
+
+
+// ==========================================
+// INITIALIZATION - SEMUA DALAM SATU EVENT LISTENER
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+  
+  // ===== SETTINGS =====
+  const settings = {
+    ihtiyat: Number(localStorage.getItem('ihtiyat')) || 0,
+    altitude: Number(localStorage.getItem('altitude')) || 0,
+    useAltitude: localStorage.getItem('use_altitude') !== 'false'
+  };
+  
+  // ===== ELEMEN DOM =====
+  // Menu & Pages
   const menuPengaturan = document.getElementById('menuPengaturan');
-  const settingsPage   = document.getElementById('settingsPage');
-  const closeSettings  = document.getElementById('closeSettings');
-
-  if(menuPengaturan && settingsPage && closeSettings){
-    settingsPage.style.display = 'none';
-    menuPengaturan.onclick = ()=> settingsPage.style.display='block';
-    closeSettings.onclick  = ()=> settingsPage.style.display='none';
-  }
-
-  const sheet     = document.getElementById('sheetIhtiyat');
-  const openBtn   = document.getElementById('openIhtiyat');
+  const settingsPage = document.getElementById('settingsPage');
+  const closeSettings = document.getElementById('closeSettings');
+  
+  // Ihtiyat
+  const sheet = document.getElementById('sheetIhtiyat');
+  const openBtn = document.getElementById('openIhtiyat');
   const valueText = document.getElementById('ihtiyatValue');
-
-  if(valueText) valueText.innerText = settings.ihtiyat+' Menit';
-
-  openBtn?.addEventListener('click',()=>sheet?.classList.add('show'));
-  sheet?.querySelector('.sheet-close')?.addEventListener('click',()=>sheet.classList.remove('show'));
-
-  sheet?.querySelectorAll('.sheet-option').forEach(opt=>{
-    opt.addEventListener('click',()=>{
+  
+  // Altitude
+  const toggleAltitude = document.getElementById('toggleAltitude');
+  const openAltitude = document.getElementById('openAltitude');
+  const altitudeValue = document.getElementById('altitudeValue');
+  const altitudeStatus = document.getElementById('altitudeStatus');
+  const altitudeDesc = document.getElementById('altitudeDesc');
+  
+  // Location
+  const locationModeValue = document.getElementById('locationModeValue');
+  const locationModeDesc = document.getElementById('locationModeDesc');
+  const coordinateDesc = document.getElementById('coordinateDesc');
+  const openLocationMode = document.getElementById('openLocationMode');
+  const openCoordinate = document.getElementById('openCoordinate');
+  
+  // Calendar
+  const prevMonth = document.getElementById('prevMonth');
+  const nextMonth = document.getElementById('nextMonth');
+  
+  // ===== FUNGSI-FUNGSI UI =====
+  
+  // Ihtiyat
+  if (valueText) valueText.innerText = settings.ihtiyat + ' Menit';
+  
+  openBtn?.addEventListener('click', () => sheet?.classList.add('show'));
+  sheet?.querySelector('.sheet-close')?.addEventListener('click', () => sheet.classList.remove('show'));
+  
+  sheet?.querySelectorAll('.sheet-option').forEach(opt => {
+    opt.addEventListener('click', () => {
       settings.ihtiyat = Number(opt.dataset.val);
-      localStorage.setItem('ihtiyat',settings.ihtiyat);
-      if(valueText) valueText.innerText = settings.ihtiyat+' Menit';
+      localStorage.setItem('ihtiyat', settings.ihtiyat);
+      if (valueText) valueText.innerText = settings.ihtiyat + ' Menit';
       sheet.classList.remove('show');
-      const j = hitungSholat(lokasi.lat,lokasi.lon,lokasi.tz);
+      
+      // Update jadwal
+      const j = hitungSholat(lokasi.lat, lokasi.lon, lokasi.tz, settings);
       updateSholatUI(j);
+      startCountdown(j);
     });
   });
-
-  const jadwal = hitungSholat(lokasi.lat,lokasi.lon,lokasi.tz);
-  updateSholatUI(jadwal);
-  startCountdown(jadwal);
-  renderCalendar();
-
-  document.getElementById('prevMonth')?.addEventListener('click',()=>{
-    currentMonth--; if(currentMonth<0){currentMonth=11;currentYear--;}
-    renderCalendar();
-  });
-
-  document.getElementById('nextMonth')?.addEventListener('click',()=>{
-    currentMonth++; if(currentMonth>11){currentMonth=0;currentYear++;}
-    renderCalendar();
-  });
-
-  /* =========================
-     LOKASI
-  ========================= */
-  const locationModeValue = document.getElementById('locationModeValue');
-  const locationModeDesc  = document.getElementById('locationModeDesc');
-  const coordinateDesc    = document.getElementById('coordinateDesc');
-  const openLocationMode  = document.getElementById('openLocationMode');
-  const openCoordinate    = document.getElementById('openCoordinate');
-
-  const locationSettings = {
-    mode : localStorage.getItem('loc_mode') || 'auto',
-    lat  : Number(localStorage.getItem('lat')) || lokasi.lat,
-    lon  : Number(localStorage.getItem('lon')) || lokasi.lon,
-  };
-
-  function updateLocationUI(){
-    if(!locationModeValue) return;
-    locationModeValue.innerText = locationSettings.mode==='auto'?'Otomatis':'Manual';
-    if(locationModeDesc) locationModeDesc.innerText = locationModeValue.innerText;
-    if(coordinateDesc) coordinateDesc.innerText =
-      locationSettings.lat.toFixed(3)+', '+locationSettings.lon.toFixed(3);
+  
+  // Altitude
+  function updateAltitudeUI() {
+    if (altitudeValue) altitudeValue.innerText = settings.altitude + ' MDPL';
+    if (altitudeStatus) altitudeStatus.innerText = settings.useAltitude ? 'Aktif' : 'Nonaktif';
+    if (altitudeDesc) altitudeDesc.innerText = settings.useAltitude ? 'Aktif' : 'Nonaktif';
   }
-
-  function applyLocation(){
+  
+  function applyAltitude() {
+    const j = hitungSholat(lokasi.lat, lokasi.lon, lokasi.tz, settings);
+    updateSholatUI(j);
+    startCountdown(j);
+  }
+  
+  toggleAltitude?.addEventListener('click', () => {
+    settings.useAltitude = !settings.useAltitude;
+    localStorage.setItem('use_altitude', settings.useAltitude);
+    updateAltitudeUI();
+    applyAltitude();
+  });
+  
+  openAltitude?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    
+    if (!settings.useAltitude) {
+      if (confirm('Ketinggian nonaktif. Aktifkan sekarang?')) {
+        settings.useAltitude = true;
+        localStorage.setItem('use_altitude', true);
+        updateAltitudeUI();
+      } else {
+        return;
+      }
+    }
+    
+    const v = prompt('Masukkan ketinggian tempat untuk koreksi waktu maghrib', settings.altitude);
+    if (v === null || isNaN(v)) return;
+    
+    settings.altitude = Number(v);
+    localStorage.setItem('altitude', settings.altitude);
+    
+    updateAltitudeUI();
+    applyAltitude();
+  });
+  
+  // Location
+  const locationSettings = {
+    mode: localStorage.getItem('loc_mode') || 'auto',
+    lat: Number(localStorage.getItem('lat')) || lokasi.lat,
+    lon: Number(localStorage.getItem('lon')) || lokasi.lon,
+  };
+  
+  function updateLocationUI() {
+    if (!locationModeValue) return;
+    locationModeValue.innerText = locationSettings.mode === 'auto' ? 'Otomatis' : 'Manual';
+    if (locationModeDesc) locationModeDesc.innerText = locationModeValue.innerText;
+    if (coordinateDesc) {
+      coordinateDesc.innerText = locationSettings.lat.toFixed(3) + ', ' + locationSettings.lon.toFixed(3);
+    }
+  }
+  
+  function applyLocation() {
     lokasi.lat = locationSettings.lat;
     lokasi.lon = locationSettings.lon;
-    const j = hitungSholat(lokasi.lat,lokasi.lon,lokasi.tz);
+    const j = hitungSholat(lokasi.lat, lokasi.lon, lokasi.tz, settings);
     updateSholatUI(j);
+    startCountdown(j);
   }
-
-  function getAutoLocation(){
-    if(!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(pos=>{
+  
+  function getAutoLocation() {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(pos => {
       locationSettings.lat = pos.coords.latitude;
       locationSettings.lon = pos.coords.longitude;
       localStorage.setItem('lat', locationSettings.lat);
@@ -374,24 +918,30 @@ document.addEventListener('DOMContentLoaded',()=>{
       applyLocation();
     });
   }
-
-  openLocationMode?.addEventListener('click',()=>{
-    if(locationSettings.mode==='auto'){
-      locationSettings.mode='manual';
-    }else{
-      locationSettings.mode='auto';
+  
+  openLocationMode?.addEventListener('click', () => {
+    if (locationSettings.mode === 'auto') {
+      locationSettings.mode = 'manual';
+    } else {
+      locationSettings.mode = 'auto';
       getAutoLocation();
     }
     localStorage.setItem('loc_mode', locationSettings.mode);
     updateLocationUI();
   });
-
-  openCoordinate?.addEventListener('click',()=>{
-    if(locationSettings.mode!=='manual') return;
+  
+  openCoordinate?.addEventListener('click', () => {
+    if (locationSettings.mode !== 'manual') {
+      alert('Mode lokasi harus Manual untuk mengubah koordinat');
+      return;
+    }
     const lat = prompt('Masukkan Latitude', locationSettings.lat);
     const lon = prompt('Masukkan Longitude', locationSettings.lon);
-    if(lat===null || lon===null) return;
-    if(isNaN(lat) || isNaN(lon)) return;
+    if (lat === null || lon === null) return;
+    if (isNaN(lat) || isNaN(lon)) {
+      alert('Koordinat tidak valid');
+      return;
+    }
     locationSettings.lat = Number(lat);
     locationSettings.lon = Number(lon);
     localStorage.setItem('lat', locationSettings.lat);
@@ -399,69 +949,48 @@ document.addEventListener('DOMContentLoaded',()=>{
     updateLocationUI();
     applyLocation();
   });
-
-  updateLocationUI();
-  if(locationSettings.mode==='auto'){ getAutoLocation(); }
-  else{ applyLocation(); }
-});
-
-// STATE
-settings.altitude = Number(localStorage.getItem('altitude')) || 0;
-settings.useAltitude = localStorage.getItem('use_altitude') !== 'false';
-
-// ELEMEN
-const toggleAltitude  = document.getElementById('toggleAltitude');
-const openAltitude    = document.getElementById('openAltitude');
-const altitudeValue   = document.getElementById('altitudeValue');
-const altitudeStatus  = document.getElementById('altitudeStatus');
-const altitudeDesc    = document.getElementById('altitudeDesc');
-
-// UPDATE UI
-function updateAltitudeUI(){
-  altitudeValue.innerText = settings.altitude + ' m';
-
-  if(settings.useAltitude){
-    altitudeStatus.innerText = 'Aktif';
-    altitudeDesc.innerText   = 'Aktif';
-  }else{
-    altitudeStatus.innerText = 'Nonaktif';
-    altitudeDesc.innerText   = 'Nonaktif';
+  
+  // Menu Settings
+  if (menuPengaturan && settingsPage && closeSettings) {
+    settingsPage.style.display = 'none';
+    menuPengaturan.onclick = () => settingsPage.style.display = 'block';
+    closeSettings.onclick = () => settingsPage.style.display = 'none';
   }
-}
-
-// APPLY KE HISAB
-function applyAltitude(){
-  const j = hitungSholat(lokasi.lat, lokasi.lon, lokasi.tz);
-  updateSholatUI(j);
-}
-
-// TOGGLE AKTIF / NONAKTIF
-toggleAltitude?.addEventListener('click',()=>{
-  settings.useAltitude = !settings.useAltitude;
-  localStorage.setItem('use_altitude', settings.useAltitude);
+  
+  // Calendar Navigation
+  prevMonth?.addEventListener('click', () => {
+    currentMonth--;
+    if (currentMonth < 0) {
+      currentMonth = 11;
+      currentYear--;
+    }
+    renderCalendar();
+  });
+  
+  nextMonth?.addEventListener('click', () => {
+    currentMonth++;
+    if (currentMonth > 11) {
+      currentMonth = 0;
+      currentYear++;
+    }
+    renderCalendar();
+  });
+  
+  // ===== INITIAL RENDER =====
   updateAltitudeUI();
-  applyAltitude();
-});
-
-// INPUT NILAI KETINGGIAN
-openAltitude?.addEventListener('click',(e)=>{
-  e.stopPropagation(); // biar ga ikut toggle
-
-  if(!settings.useAltitude) return;
-
-  const v = prompt('Masukkan ketinggian tempat (meter)', settings.altitude);
-  if(v === null || isNaN(v)) return;
-
-  settings.altitude = Number(v);
-  localStorage.setItem('altitude', settings.altitude);
-
-  updateAltitudeUI();
-  applyAltitude();
-});
-
-// INIT
-document.addEventListener('DOMContentLoaded',()=>{
-  updateAltitudeUI();
+  updateLocationUI();
+  
+  if (locationSettings.mode === 'auto') {
+    getAutoLocation();
+  } else {
+    applyLocation();
+  }
+  
+  const jadwal = hitungSholat(lokasi.lat, lokasi.lon, lokasi.tz, settings);
+  updateSholatUI(jadwal);
+  startCountdown(jadwal);
+  
+  renderCalendar();
 });
 
 const resetBtn = document.getElementById('resetSettings');
@@ -494,11 +1023,11 @@ function applyTheme(mode) {
   if (mode === "light") {
     document.body.classList.add("light");
     themeDesc.textContent = "Terang";
-    themeValue.textContent = "Terang";
+    themeValue.className = "bi bi-sun";
   } else {
     document.body.classList.remove("light");
     themeDesc.textContent = "Gelap";
-    themeValue.textContent = "Gelap";
+    themeValue.className = "bi bi-moon";
   }
   localStorage.setItem("theme", mode);
 }
@@ -510,27 +1039,26 @@ function resetTheme() {
   applyTheme("dark");
 }
 
-
-
 /* ===============================
-   ELEMENT UTAMA
+   ELEMENT UTAMA HISAB
 ================================ */
 const btnMenuHisab   = document.getElementById('menu-hisab'); // footer
 const overlayHisab   = document.getElementById('hisabOverlay');
 const panelHisab     = document.getElementById('panelHisab');
 const btnCloseHisab  = document.getElementById('closeHisab');
 
+
 /* ===============================
    TAB & KONTEN HISAB
 ================================ */
 const tabs = document.querySelectorAll('.hisab-tabs .tab');
 
-const contentAkhir   = document.getElementById('hisabAkhirBulan');
+const inputIjtima   = document.getElementById('hisabAkhirBulan');
 const panelInputSholat = document.getElementById('panelInputSholat');
 const contentKonversiH_M  = document.getElementById('konveriH_M');
 const contentKonversiM_H  = document.getElementById('konveriM_H');
 
-const contents = [contentAkhir, panelInputSholat, contentKonversiH_M, contentKonversiM_H];
+const contents = [inputIjtima, panelInputSholat, contentKonversiH_M, contentKonversiM_H];
 
 /* ===============================
    PANEL HASIL HISAB
@@ -551,7 +1079,7 @@ if (btnMenuHisab) {
     tabs[0].classList.add('active');
 
     contents.forEach(c => c.classList.add('hidden'));
-    contentAkhir.classList.remove('hidden');
+    inputIjtima.classList.remove('hidden');
 
     // pastikan panel hasil tertutup
     if (panelHasilHisab) panelHasilHisab.classList.add('hidden');
@@ -593,7 +1121,7 @@ const btnBackToKonversiH_M = document.getElementById("btnBackToKonversiH_M");
 const hasilKonversiH_M  = document.getElementById("hasilKonversiH_M");
 
 if(btnProsesKonversiH_M){
-  btnProsesKonversiH_M.onclick=()=>{contentKonversiH_M.classList.add("hidden");panelHasilKonversiH_M.classList.remove("hidden");const tgl=parseInt(document.getElementById('inputTanggalHM').value);const bln=parseInt(document.getElementById('inputBulanHM').value);const thn=parseInt(document.getElementById('inputTahunHM').value);const bulanHijriyah={1:"Muharram",2:"Safar",3:"Rabiul Awal",4:"Rabiul Akhir",5:"Jumadil Awal",6:"Jumadil Akhir",7:"Rajab",8:"Sya'ban",9:"Ramadhan",10:"Syawal",11:"Dzulqaidah",12:"Dzulhijjah"};const namaBulanHijri=bulanHijriyah[bln]||`Bulan ${bln}`;let tth=thn-1;let daor=Math.trunc(tth/30);let st=tth%30;let jth=daor*10631;let thst=st*354;let ak;if(st<=4)ak=1;else if(st<=6)ak=2;else if(st<=9)ak=3;else if(st<=12)ak=4;else if(st<=15)ak=5;else if(st<=17)ak=6;else if(st<=20)ak=7;else if(st<=23)ak=8;else if(st<=25)ak=9;else if(st<=29)ak=10;const jhdsMap={1:0,2:30,3:59,4:89,5:118,6:148,7:177,8:207,9:236,10:266,11:295,12:325};let jhds=jhdsMap[bln];let jhhk=jth+thst+ak+jhds+tgl;let jhmk=227014+jhhk;let tkt_ttM=jhmk/365.2425;let ttM=Math.trunc(tkt_ttM);let sttm=tkt_ttM-ttM;let jhp=Math.round(sttm*365.2425);let thnm=ttM+1;let b_masehi,b_masehi_nama;if(jhp<=31){b_masehi=1;b_masehi_nama="Januari";}else if(jhp<=59){b_masehi=2;b_masehi_nama="Februari";}else if(jhp<=90){b_masehi=3;b_masehi_nama="Maret";}else if(jhp<=120){b_masehi=4;b_masehi_nama="April";}else if(jhp<=151){b_masehi=5;b_masehi_nama="Mei";}else if(jhp<=181){b_masehi=6;b_masehi_nama="Juni";}else if(jhp<=212){b_masehi=7;b_masehi_nama="Juli";}else if(jhp<=243){b_masehi=8;b_masehi_nama="Agustus";}else if(jhp<=273){b_masehi=9;b_masehi_nama="September";}else if(jhp<=304){b_masehi=10;b_masehi_nama="Oktober";}else if(jhp<=334){b_masehi=11;b_masehi_nama="November";}else{b_masehi=12;b_masehi_nama="Desember";}let x_tglmm;switch(b_masehi){case 1:x_tglmm=0;break;case 2:x_tglmm=31;break;case 3:x_tglmm=59;break;case 4:x_tglmm=90;break;case 5:x_tglmm=120;break;case 6:x_tglmm=151;break;case 7:x_tglmm=181;break;case 8:x_tglmm=212;break;case 9:x_tglmm=243;break;case 10:x_tglmm=273;break;case 11:x_tglmm=304;break;case 12:x_tglmm=334;break;default:x_tglmm=0;}let tglmm=Math.round(jhp-x_tglmm);let xh=jhhk%7;let hari;switch(xh){case 0:hari="Kamis";break;case 1:hari="Jumat";break;case 2:hari="Sabtu";break;case 3:hari="Minggu";break;case 4:hari="Senin";break;case 5:hari="Selasa";break;case 6:hari="Rabu";break;default:hari="-";}let xp=jhhk%5;let pasar;switch(xp){case 0:pasar="Kliwon";break;case 1:pasar="Legi";break;case 2:pasar="Pahing";break;case 3:pasar="Pon";break;case 4:pasar="Wage";break;default:pasar="-";}let hasilTgl=tglmm===0?31:tglmm;hasilKonversiH_M.innerHTML=`<div class="card sholat-list"><div class="row"><span>ttH</span><b>${tth}</b></div><div class="row"><span>daor</span><b>${daor}</b></div><div class="row"><span>st</span><b>${st}</b></div><div class="row"><span>jth</span><b>${jth}</b></div><div class="row"><span>thst</span><b>${thst}</b></div><div class="row"><span>ak</span><b>${ak}</b></div><div class="row"><span>jhds</span><b>${jhds}</b></div><div class="row"><span>jhhk</span><b>${jhhk}</b></div><div class="row"><span>jhmk</span><b>${jhmk}</b></div><div class="row"><span>tkt(ttM)</span><b>${tkt_ttM.toFixed(6)}</b></div><div class="row"><span>ttM</span><b>${ttM}</b></div><div class="row"><span>sttm</span><b>${sttm.toFixed(6)}</b></div><div class="row"><span>jhp</span><b>${Math.round(jhp)}</b></div><div class="row"><span>thnm</span><b>${thnm}</b></div><div class="row"><span>b-masehi</span><b>${b_masehi_nama}</b></div><div class="row"><span>x(tglmm)</span><b>${x_tglmm}</b></div><div class="row"><span>tglmm</span><b>${tglmm}</b></div><div class="row"><span>xh</span><b>${xh}</b></div><div class="row"><span>h</span><b>${hari}</b></div><div class="row"><span>xp</span><b>${xp}</b></div><div class="row"><span>p</span><b>${pasar}</b></div><div class="poinHasilHisab"><div><span>H: </span><b>${tgl} ${namaBulanHijri} ${thn}H</b></div><div><span>M: </span><b>${hari} ${pasar}, ${hasilTgl} ${b_masehi_nama} ${thnm}M</b></div></div>`;};}
+  btnProsesKonversiH_M.onclick=()=>{contentKonversiH_M.classList.add("hidden");panelHasilKonversiH_M.classList.remove("hidden");const tgl=parseInt(document.getElementById('inputTanggalHM').value);const bln=parseInt(document.getElementById('inputBulanHM').value);const thn=parseInt(document.getElementById('inputTahunHM').value);const bulanHijriyah={1:"Muharram",2:"Safar",3:"Rabiul Awal",4:"Rabiul Akhir",5:"Jumadil Awal",6:"Jumadil Akhir",7:"Rajab",8:"Sya'ban",9:"Ramadhan",10:"Syawal",11:"Dzulqo'dah",12:"Dzulhijjah"};const namaBulanHijri=bulanHijriyah[bln]||`Bulan ${bln}`;let tth=thn-1;let daor=Math.trunc(tth/30);let st=tth%30;let jth=daor*10631;let thst=st*354;let ak;if(st<=4)ak=1;else if(st<=6)ak=2;else if(st<=9)ak=3;else if(st<=12)ak=4;else if(st<=15)ak=5;else if(st<=17)ak=6;else if(st<=20)ak=7;else if(st<=23)ak=8;else if(st<=25)ak=9;else if(st<=29)ak=10;const jhdsMap={1:0,2:30,3:59,4:89,5:118,6:148,7:177,8:207,9:236,10:266,11:295,12:325};let jhds=jhdsMap[bln];let jhhk=jth+thst+ak+jhds+tgl;let jhmk=227014+jhhk;let tkt_ttM=jhmk/365.2425;let ttM=Math.trunc(tkt_ttM);let sttm=tkt_ttM-ttM;let jhp=Math.round(sttm*365.2425);let thnm=ttM+1;let b_masehi,b_masehi_nama;if(jhp<=31){b_masehi=1;b_masehi_nama="Januari";}else if(jhp<=59){b_masehi=2;b_masehi_nama="Februari";}else if(jhp<=90){b_masehi=3;b_masehi_nama="Maret";}else if(jhp<=120){b_masehi=4;b_masehi_nama="April";}else if(jhp<=151){b_masehi=5;b_masehi_nama="Mei";}else if(jhp<=181){b_masehi=6;b_masehi_nama="Juni";}else if(jhp<=212){b_masehi=7;b_masehi_nama="Juli";}else if(jhp<=243){b_masehi=8;b_masehi_nama="Agustus";}else if(jhp<=273){b_masehi=9;b_masehi_nama="September";}else if(jhp<=304){b_masehi=10;b_masehi_nama="Oktober";}else if(jhp<=334){b_masehi=11;b_masehi_nama="November";}else{b_masehi=12;b_masehi_nama="Desember";}let x_tglmm;switch(b_masehi){case 1:x_tglmm=0;break;case 2:x_tglmm=31;break;case 3:x_tglmm=59;break;case 4:x_tglmm=90;break;case 5:x_tglmm=120;break;case 6:x_tglmm=151;break;case 7:x_tglmm=181;break;case 8:x_tglmm=212;break;case 9:x_tglmm=243;break;case 10:x_tglmm=273;break;case 11:x_tglmm=304;break;case 12:x_tglmm=334;break;default:x_tglmm=0;}let tglmm=Math.round(jhp-x_tglmm);let xh=jhhk%7;let hari;switch(xh){case 0:hari="Kamis";break;case 1:hari="Jumat";break;case 2:hari="Sabtu";break;case 3:hari="Minggu";break;case 4:hari="Senin";break;case 5:hari="Selasa";break;case 6:hari="Rabu";break;default:hari="-";}let xp=jhhk%5;let pasar;switch(xp){case 0:pasar="Kliwon";break;case 1:pasar="Legi";break;case 2:pasar="Pahing";break;case 3:pasar="Pon";break;case 4:pasar="Wage";break;default:pasar="-";}let hasilTgl=tglmm===0?31:tglmm;hasilKonversiH_M.innerHTML=`<div class="card hisab-list"><div class="row"><span>ttH</span><span>${tth}</span></div><div class="row"><span>daor</span><span>${daor}</span></div><div class="row"><span>st</span><span>${st}</span></div><div class="row"><span>jth</span><span>${jth}</span></div><div class="row"><span>thst</span><span>${thst}</span></div><div class="row"><span>ak</span><span>${ak}</span></div><div class="row"><span>jhds</span><span>${jhds}</span></div><div class="row"><span>jhhk</span><span>${jhhk}</span></div><div class="row"><span>jhmk</span><span>${jhmk}</span></div><div class="row"><span>tkt(ttM)</span><span>${tkt_ttM.toFixed(6)}</span></div><div class="row"><span>ttM</span><span>${ttM}</span></div><div class="row"><span>sttm</span><span>${sttm.toFixed(6)}</span></div><div class="row"><span>jhp</span><span>${Math.round(jhp)}</span></div><div class="row"><span>thnm</span><span>${thnm}</span></div><div class="row"><span>b-masehi</span><span>${b_masehi_nama}</span></div><div class="row"><span>x(tglmm)</span><span>${x_tglmm}</span></div><div class="row"><span>tglmm</span><span>${tglmm}</span></div><div class="row"><span>xh</span><span>${xh}</span></div><div class="row"><span>h</span><span>${hari}</span></div><div class="row"><span>xp</span><span>${xp}</span></div><div class="row"><span>p</span><span>${pasar}</span></div><div class="poinHasilHisab"><div><span>${tgl} ${namaBulanHijri} ${thn}</span></div><div><span>${hari} ${pasar}, ${hasilTgl} ${b_masehi_nama} ${thnm}</span></div></div>`;};}
 
 
 
@@ -614,7 +1142,7 @@ const panelHasilKonversiM_H  = document.getElementById("panelHasilKonversiM_H");
 const btnBackToKonversiM_H = document.getElementById("btnBackToKonversiM_H");
 const hasilKonversiM_H  = document.getElementById("hasilKonversiM_H");
 
-if(btnProsesKonversiM_H){btnProsesKonversiM_H.onclick=()=>{contentKonversiM_H.classList.add("hidden");panelHasilKonversiM_H.classList.remove("hidden");const v1=parseInt(document.getElementById('inputTanggalMH').value);const v2=parseInt(document.getElementById('inputBulanMH').value);const v3=parseInt(document.getElementById('inputTahunMH').value);const mN={1:"Muharram",2:"Safar",3:"Rabiul Awal",4:"Rabiul Akhir",5:"Jumadil Awal",6:"Jumadil Akhir",7:"Rajab",8:"Sya'ban",9:"Ramadhan",10:"Syawal",11:"Dzulqaidah",12:"Dzulhijjah"};const mM={1:"Januari",2:"Februari",3:"Maret",4:"April",5:"Mei",6:"Juni",7:"Juli",8:"Agustus",9:"September",10:"Oktober",11:"November",12:"Desember"};let a=Math.trunc((14-v2)/12);let y=v3+4800-a;let m=v2+12*a-3;let jdn=v1+Math.trunc((153*m+2)/5)+365*y+Math.trunc(y/4)-Math.trunc(y/100)+Math.trunc(y/400)-32045;let jh=jdn-1948439;let d=Math.trunc(jh/10631);let s=jh%10631;let ts=Math.trunc((s-1)/354);let ht=(s-1)%354;let k=Math.trunc((11*ts+3)/30);if(ht>=k){ht-=k;}let th=d*30+ts+1;let b;if(ht<30)b=1;else if(ht<59)b=2;else if(ht<89)b=3;else if(ht<118)b=4;else if(ht<148)b=5;else if(ht<177)b=6;else if(ht<207)b=7;else if(ht<236)b=8;else if(ht<266)b=9;else if(ht<295)b=10;else if(ht<325)b=11;else b=12;const ab=[0,0,30,59,89,118,148,177,207,236,266,295,325];let t=ht-ab[b]+1;hasilKonversiM_H.innerHTML=`<div class="card sholat-list"><div class="row"><span>a</span><b>${a}</b></div><div class="row"><span>y</span><b>${y}</b></div><div class="row"><span>m</span><b>${m}</b></div><div class="row"><span>JDN</span><b>${jdn}</b></div><div class="row"><span>jh</span><b>${jh}</b></div><div class="row"><span>daur</span><b>${d}</b></div><div class="row"><span>Sisa Hari</span><b>${s}</b></div><div class="row"><span>Tahun Sisa</span><b>${ts}</b></div><div class="row"><span>kabisat</span><b>${k}</b></div><div class="row"><span>h-Tahun</span><b>${ht}</b></div><div class="row"><span>bulan</span><b>${mN[b]}</b></div><div class="row"><span>tglH</span><b>${t}</b></div><div class="poinHasilHisab"><div><span>M: </span><b>${v1} ${mM[v2]} ${v3}</b></div><div><span>H: </span><b>${t} ${mN[b]} ${th}</b></div></div></div>`;};}
+if(btnProsesKonversiM_H){btnProsesKonversiM_H.onclick=()=>{contentKonversiM_H.classList.add("hidden");panelHasilKonversiM_H.classList.remove("hidden");const v1=parseInt(document.getElementById('inputTanggalMH').value);const v2=parseInt(document.getElementById('inputBulanMH').value);const v3=parseInt(document.getElementById('inputTahunMH').value);const mN={1:"Muharram",2:"Safar",3:"Rabiul Awal",4:"Rabiul Akhir",5:"Jumadil Awal",6:"Jumadil Akhir",7:"Rajab",8:"Sya'ban",9:"Ramadhan",10:"Syawal",11:"Dzulqo'dah",12:"Dzulhijjah"};const mM={1:"Januari",2:"Februari",3:"Maret",4:"April",5:"Mei",6:"Juni",7:"Juli",8:"Agustus",9:"September",10:"Oktober",11:"November",12:"Desember"};let a=Math.trunc((14-v2)/12);let y=v3+4800-a;let m=v2+12*a-3;let jdn=v1+Math.trunc((153*m+2)/5)+365*y+Math.trunc(y/4)-Math.trunc(y/100)+Math.trunc(y/400)-32045;let jh=jdn-1948439;let d=Math.trunc(jh/10631);let s=jh%10631;let ts=Math.trunc((s-1)/354);let ht=(s-1)%354;let k=Math.trunc((11*ts+3)/30);if(ht>=k){ht-=k;}let th=d*30+ts+1;let b;if(ht<30)b=1;else if(ht<59)b=2;else if(ht<89)b=3;else if(ht<118)b=4;else if(ht<148)b=5;else if(ht<177)b=6;else if(ht<207)b=7;else if(ht<236)b=8;else if(ht<266)b=9;else if(ht<295)b=10;else if(ht<325)b=11;else b=12;const ab=[0,0,30,59,89,118,148,177,207,236,266,295,325];let t=ht-ab[b]+1;hasilKonversiM_H.innerHTML=`<div class="card hisab-list"><div class="row"><span>a</span><span>${a}</span></div><div class="row"><span>y</span><span>${y}</span></div><div class="row"><span>m</span><span>${m}</span></div><div class="row"><span>JDN</span><span>${jdn}</span></div><div class="row"><span>jh</span><span>${jh}</span></div><div class="row"><span>daur</span><span>${d}</span></div><div class="row"><span>Sisa Hari</span><span>${s}</span></div><div class="row"><span>Tahun Sisa</span><span>${ts}</span></div><div class="row"><span>kabisat</span><span>${k}</span></div><div class="row"><span>h-Tahun</span><span>${ht}</span></div><div class="row"><span>bulan</span><span>${mN[b]}</span></div><div class="row"><span>tglH</span><span>${t}</span></div><div class="poinHasilHisab"><div><span>${v1} ${mM[v2]} ${v3}</span></div><div><span>${t} ${mN[b]} ${th}</span></div></div></div>`;};}
 
 
 
@@ -637,9 +1165,6 @@ if (btnProsesWaktuSholat) {
   btnProsesWaktuSholat.onclick = () => {
     panelInputSholat.classList.add("hidden");
     panelHasilHisabSholat.classList.remove("hidden");
-    
-    
-    
 
     // =====================
     // INPUT DATA
@@ -649,8 +1174,8 @@ if (btnProsesWaktuSholat) {
     const tanggal = parseInt(document.getElementById('inputTanggal').value) || 18;
     const zonaWaktu = 7;
     
-    const φ = -6.786;
-    const λ = 107.173;
+    const φ = lokasi.lat;
+    const λ = lokasi.lon;
     
     const φKaaba = 21.4225;
     const λKaaba = 39.8262;
@@ -758,180 +1283,168 @@ if (btnProsesWaktuSholat) {
     );
     const arahQiblatNorm = (arahQiblat + 360) % 360;
     
-    // =====================
-    // OUTPUT
-    // =====================// =====================
-// OUTPUT DALAM DIV TERPISAH
-// =====================
-hasilHisabWaktuSholat.innerHTML = `
 
-<!-- DIV 1: DATA DASAR -->
-<div class="card sholat-list">
-  
+hasilHisabWaktuSholat.innerHTML = `
+<div class="card hisab-list">
   <div class="row">
     <span>Tanggal (d-m-y)</span>
-    <b>${tanggal}-${bulan}-${tahun}</b>
+    <span>${tanggal}-${bulan}-${tahun}</span>
   </div>
   <div class="row">
     <span>Arudh Balad (φ)</span>
-    <b>${toDMS(φ)}</b>
+    <span>${toDMS(φ)}</span>
   </div>
   <div class="row">
     <span>Thul Balad (λ)</span>
-    <b>${toDMS(λ)}</b>
+    <span>${toDMS(λ)}</span>
   </div>
   <div class="row">
     <span>Ihtiyath (+WS)</span>
-    <b>${toHMS(ihtiyat)}</b>
+    <span>${toHMS(ihtiyat)}</span>
   </div>
   <div class="row">
     <span>Zaman Julian (T)</span>
-    <b>${T.toFixed(8)}</b>
+    <span>${T.toFixed(8)}</span>
   </div>
-  
+ </div>
+<div class="card hisab-list">
   <div class="row">
     <span>Julian Day (JD)</span>
-    <b>${JD.toFixed(6)}</b>
+    <span>${JD.toFixed(6)}</span>
   </div>
   <div class="row">
     <span>Thul Syamsi Wasithi (L₀)</span>
-    <b>${toDMS(L0)}</b>
+    <span>${toDMS(L0)}</span>
   </div>
   
   <div class="row">
     <span>Anomali Wasithi (M)</span>
-    <b>${toDMS(M)}</b>
+    <span>${toDMS(M)}</span>
   </div>
   
   <div class="row">
     <span>Khosshah Syamsi (C)</span>
-    <b>${toDMS(C)}</b>
+    <span>${toDMS(C)}</span>
   </div>
   
   <div class="row">
     <span>Thul Haqiqi (λ_Matahari)</span>
-    <b>${toDMS(λ_matahari)}</b>
+    <span>${toDMS(λ_matahari)}</span>
   </div>
 
   <div class="row">
     <span>Mail Syamsi (ε)</span>
-    <b>${toDMS(ε)}</b>
+    <span>${toDMS(ε)}</span>
   </div>
   
   <div class="row">
     <span>Mail Haqiqi (δ)</span>
-    <b>${toDMS(δ)}</b>
+    <span>${toDMS(δ)}</span>
   </div>
   
   <div class="row">
     <span>Daqoiq Tafawut (E)</span>
-    <b>${toHMS(E)}</b>
+    <span>${toHMS(E)}</span>
   </div>
   <div class="row">
   <span>Daqāʾiq Tafāwut (E)</span>
-  <b>${menitKeMS(E)}</b>
+  <span>${menitKeMS(E)}</span>
 </div>
   <div class="row">
     <span>Zawal Syamsi (Dzuhur)</span>
-    <b>${toHMS(zawal)}</b>
+    <span>${toHMS(zawal)}</span>
+  </div>
+  <div class="row">
+    <span>Irtfa' Ashar</span>
+    <span>${toDMS(hAshar)}</span>
   </div>
 </div>
 
-<!-- DIV 4: BUSUR-BUSUR -->
-<div class="card sholat-list">
+
+<div class="card hisab-list">
   <div class="row">
-    <span>Nishfu Qaus Nahr (Zawal -> Maghrib)</span>
-    <b>${toHMS(tMaghrib)}</b>
+    <span>Nishfu Qaus Nahr (Zawal -› Maghrib)</span>
+    <span>${toHMS(tMaghrib)}</span>
   </div>
   <div class="row">
-    <span>Nishfu Qaus Lail (Magrib <--> Subuh) ÷2 WIB</span>
-    <b>${toHMS(nishfuLail)}</b>
+    <span>Nishfu Qausil Lail (Maghrib ‹-› Subuh)</span>
+    <span>${toHMS(nishfuLail)}</span>
   </div>
   <div class="row">
-    <span>Qaus Isya (Zawal -> Isya)</span>
-    <b>${toHMS(tIsya)}</b>
-  </div>
-  
-  <div class="row">
-    <span>Qaus Subuh (Subuh -> Zawal)</span>
-    <b>${toHMS(tSubuh)}</b>
+    <span>Qaus Isya (Zawal -› Isya)</span>
+    <span>${toHMS(tIsya)}</span>
   </div>
   
   <div class="row">
-    <span>Budul Qutr --> (Irtfa Ashar)</span>
-    <b>${toDMS(hAshar)}</b>
+    <span>Qaus Subuh (Subuh -› Zawal)</span>
+    <span>${toHMS(tSubuh)}</span>
   </div>
   
   <div class="row">
-    <span>Qaus Ashar (Zawal -> Ashar)</span>
-    <b>${toHMS(tAshar)}</b>
+    <span>Qaus Ashar (Zawal -› Ashar)</span>
+    <span>${toHMS(tAshar)}</span>
   </div>
 </div>
 
-<!-- DIV 5: WAKTU SHOLAT -->
-<div class="card sholat-list">
+
+<div class="card hisab-list">
   <div class="row">
     <span>Subuh</span>
-    <b>${toHMS(subuh)}</b>
+    <span>${toHMS(subuh)}</span>
   </div>
   
   <div class="row">
     <span>Terbit</span>
-    <b>${toHMS(terbit)}</b>
+    <span>${toHMS(terbit)}</span>
   </div>
   
   <div class="row">
     <span>Dhuha</span>
-    <b>${toHMS(dhuha)}</b>
+    <span>${toHMS(dhuha)}</span>
   </div>
   
   <div class="row">
     <span>Dzuhur</span>
-    <b>${toHMS(dzuhur)}</b>
+    <span>${toHMS(dzuhur)}</span>
   </div>
   
   <div class="row">
     <span>Ashar</span>
-    <b>${toHMS(ashar)}</b>
+    <span>${toHMS(ashar)}</span>
   </div>
   
   <div class="row">
     <span>Maghrib</span>
-    <b>${toHMS(maghrib)}</b>
+    <span>${toHMS(maghrib)}</span>
   </div>
   
   <div class="row">
     <span>Isya</span>
-    <b>${toHMS(isya)}</b>
+    <span>${toHMS(isya)}</span>
   </div>
   
 </div>
 
-<!-- DIV 6: ARAH KIBLAT -->
-<div class="card sholat-list">
+
+<div class="card hisab-list">
   <div class="row">
     <span>Lintang Ka'bah (φ)</span>
-    <b>${toDMS(φKaaba, true)}</b>
+    <span>${toDMS(φKaaba, true)}</span>
   </div>
   
   <div class="row">
     <span>Bujur Ka'bah (λ)</span>
-    <b>${toDMS(λKaaba)}</b>
+    <span>${toDMS(λKaaba)}</span>
   </div>
   
   <div class="row">
     <span>Selisih Bujur (Δλ)</span>
-    <b>${toDMS(Δλ)}</b>
+    <span>${toDMS(Δλ)}</span>
   </div>
   
   <div class="row">
-    <span>Arah Kiblat</span>
-    <b>${toDMS(arahQiblatNorm)} dari Utara</b>
-  </div>
-  
-  <div class="row">
-    <span>Azimuth Ka'bah</span>
-    <b>${arahQiblatNorm.toFixed(2)}°</b>
+    <span>Arah Kiblat (Q)</span>
+    <span>${toDMS(arahQiblatNorm)}</span>
   </div>
 </div>
 
@@ -939,8 +1452,6 @@ hasilHisabWaktuSholat.innerHTML = `
     
   };
 }
-
-
 
 if (btnBackToHitungSholat) {
   btnBackToHitungSholat.onclick = () => {
@@ -955,6 +1466,7 @@ if (btnBackToHitungSholat) {
 if (btnProsesHisab) {
   btnProsesHisab.onclick = () => {
   const koorlong = lokasi.lon;
+  const koorlat = lokasi.lat;
   
 let tahunmajmuah = document.querySelector("#tahunmajmuah").value; let totaltahunmajmuah =  parseFloat(tahunmajmuah); 
 
@@ -1041,7 +1553,7 @@ let hasilAkhirMarkaz3 = Math.round(hasilAkhirMarkaz2);
 
 
 let tahunYangDimaksud = totaltahunmajmuah + totaltahunmabsutoh + (totalbulan <= 1 ? 1 : 0);
-const bulanList = ["Muharom", "Sopar", "Robi'ul Awal", "Robi'ust Stani", "Jumadil Awal", "Jumadist Stani", "Rojab", "Sya'ban", "Romadhon", "Syawal", "Dzul Qo'dah", "Dzul Hijjah"];
+const bulanList = ["Muharom", "Sopar", "Robiul Awal", "Robiul Akhir", "Jumadil Awal", "Jumadil Akhir", "Rojab", "Sya'ban", "Romadhon", "Syawal", "Dzul Qo'dah", "Dzul Hijjah"];
 
 let bulanYangDimaksud = bulanList[totalbulan - 1] || "Invalid";
   
@@ -1190,20 +1702,385 @@ let hissohsaah = lookupHissohsaah.find(range => hasilAkhirKhosoh3 >= range.min).
   let tadilalamah = budumuadal * hissohsaah; let tadilalamah2 = tadilalamah.toFixed(3)
   let jkt = hasilAkhirAlamah3 - tadilalamah;
   let jkt2 = jkt <= 0 ? jkt + 168 : jkt;
-  let jkt3 = jkt2.toFixed(3);
-  let selisihwaktu = Math.abs(koorlong - 106.8272) /15; let selisihwaktu2 = selisihwaktu.toFixed(3)
-  let bittatbieq = (jkt2 - selisihwaktu) +1;
-  let bittatbieq2 = bittatbieq.toFixed(3);
+// Jika longitude user lebih besar dari longitude jakarta maka posisi user berada di timuran jakarta seperti daerah cianjur, waktu lebih lambat.
+// Jika kurang maka di baratan jakarta seperti daerah tangerang, waktu lebih cepat.
+  let bujurJakartaBarat = 106.37833; // 106° 22' 42" (batas barat Jakarta)
+  let bujurJakartaTimur = 106.97167;  // 106° 58' 18" (batas timur Jakarta)
+  let arah;
+  if (koorlong > bujurJakartaTimur) {
+    arah = 'Timuran Jakarta (+)';
+  } else if (koorlong < bujurJakartaBarat) {
+    arah = 'Baratan Jakarta (-)';
+  } else {
+    arah = 'Rentang wilayah Jakarta (0)';
+  }
+  let selisihwaktu = (koorlong -106.81666) /15;
+  let bittatbieq = jkt2  +selisihwaktu +1;
+  
   let ij = bittatbieq / 24; 
   let ijt = Math.trunc(ij);
-  console.log(ijt);
+  
   const days = ["Sabtu", "Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jum'at"];
   let indexYaqoulijtima = Math.floor(ijt) % 7;
 let yaqoulijtima = days[indexYaqoulijtima];
 let yaqoulijtima2 = days[(indexYaqoulijtima + 1) % 7];
-let sig = bittatbieq % 24; let sig2 = sig.toFixed(3)
-let siz = sig <= 6 ? sig + 18 : (sig <= 18 ? sig - 6 : (sig - 18 <= 1 ? sig - 18 + 12 : sig - 6)); let siz2 = siz.toFixed(3);
-let mig = 24 - sig2; let mig2 = mig.toFixed(3); let irtipa = mig / 2; let irtipa2 = irtipa.toFixed(3);
+
+// Jam 6 dan Jam 12 di koreksi waktu maghri dan zawal
+// Hitung Waktu Magrib dan zawal
+
+// KONVERSEI TANGGAL HIJRI -> MASEHI
+
+const tgl = 1;
+const bln = totalbulan;
+const thn = tahunYangDimaksud;
+
+let tth = thn - 1;
+    let daor = Math.trunc(tth / 30);
+    let st = tth % 30;
+    let jth = daor * 10631;
+    let thst = st * 354;
+
+let ak;
+    if (st <= 4) ak = 1;
+    else if (st <= 6) ak = 2;
+    else if (st <= 9) ak = 3;
+    else if (st <= 12) ak = 4;
+    else if (st <= 15) ak = 5;
+    else if (st <= 17) ak = 6;
+    else if (st <= 20) ak = 7;
+    else if (st <= 23) ak = 8;
+    else if (st <= 25) ak = 9;
+    else if (st <= 29) ak = 10;
+    
+    const jhdsMap = { 
+        1: 0, 2: 30, 3: 59, 4: 89, 5: 118, 
+        6: 148, 7: 177, 8: 207, 9: 236, 
+        10: 266, 11: 295, 12: 325 
+    };
+    
+    let jhds = jhdsMap[bln];
+    let jhhk = jth + thst + ak + jhds + tgl;
+    let jhmk = 227014 + jhhk; 
+    // Lanjutan setelah jhmk
+let tkt_ttM = jhmk / 365.2425;
+let ttM = Math.trunc(tkt_ttM);
+let sttm = tkt_ttM - ttM;
+let jhp = Math.round(sttm * 365.2425) ;
+let thnm = ttM + 1;
+
+let b_masehi;
+let b_masehi_nama;
+if (jhp <= 31) { b_masehi = 1; b_masehi_nama = "Januari"; }
+else if (jhp <= 59) { b_masehi = 2; b_masehi_nama = "Februari"; }
+else if (jhp <= 90) { b_masehi = 3; b_masehi_nama = "Maret"; }
+else if (jhp <= 120) { b_masehi = 4; b_masehi_nama = "April"; }
+else if (jhp <= 151) { b_masehi = 5; b_masehi_nama = "Mei"; }
+else if (jhp <= 181) { b_masehi = 6; b_masehi_nama = "Juni"; }
+else if (jhp <= 212) { b_masehi = 7; b_masehi_nama = "Juli"; }
+else if (jhp <= 243) { b_masehi = 8; b_masehi_nama = "Agustus"; }
+else if (jhp <= 273) { b_masehi = 9; b_masehi_nama = "September"; }
+else if (jhp <= 304) { b_masehi = 10; b_masehi_nama = "Oktober"; }
+else if (jhp <= 334) { b_masehi = 11; b_masehi_nama = "November"; }
+else { b_masehi = 12; b_masehi_nama = "Desember"; }
+
+let x_tglmm;
+switch(b_masehi) {
+    case 1: x_tglmm = 0; break;
+    case 2: x_tglmm = 31; break;
+    case 3: x_tglmm = 59; break;
+    case 4: x_tglmm = 90; break;
+    case 5: x_tglmm = 120; break;
+    case 6: x_tglmm = 151; break;
+    case 7: x_tglmm = 181; break;
+    case 8: x_tglmm = 212; break;
+    case 9: x_tglmm = 243; break;
+    case 10: x_tglmm = 273; break;
+    case 11: x_tglmm = 304; break;
+    case 12: x_tglmm = 334; break;
+    default: x_tglmm = 0;
+}
+let tglmm = Math.round(jhp - x_tglmm);
+let hasilTgl = tglmm === 0 ? 31 : tglmm;
+
+// KOREKSI TANGGAL & PASARAN MASEHI
+let tmM = tahunYangDimaksud;
+let bmM = totalbulan;
+const dataKonversi = {
+    1447: {
+        1: "20 Juli 2025",
+        2: "20 Agustus 2025",
+        3: "19 September 2025",
+        4: "20 Oktober 2025",
+        5: "18 November 2025",
+        7: "18 Desember 2025",
+        8: "Pahing, 20 Januari 2026",
+        9: "Pahing, 19 Februari 2026",
+        10: "Legi, 20 Maret 2026",
+        11: "Legi, 19 April 2026",
+        12: "Kliwon 18 Mei 2026"
+    },
+    1448: {
+        1: "Wage, 16 Juni 2026",
+        2: "Wage, 16 Juli 2026",
+        3: "Pon, 14 Agustus 2026",
+        4: "Pahing, 12 September 2026",
+        5: "Pahing, 12 Oktober 2026",
+        6: "Pahing, 11 November 2026",
+        7: "Legi, 10 Desember 2026",
+        8: "Legi, 9 Januari 2027",
+        9: "Legi, 8 Februari 2027",
+        10: "Legi, 10 Maret 2027",
+        11: "Kliwon, 8 April 2027",
+        12: "Kliwon 8 Mei 2027"
+    },
+    1449: {
+        1: "Wage, 6 juni 2027",
+        2: "Pon, 5 Juli 2027",
+        3: "Pon, 4 Agustus 2027",
+        4: "Pahing, 2 September 2027",
+        5: "Legi, 1 Oktober 2027",
+        6: "Legi, 31 Oktober 2027",
+        7: "Kliwon, 29 November 2027",
+        8: "Kliwon, 29 Desember 2027",
+        9: "Kliwon, 28 Januari 2028",
+        10: "Kliwon, 27 Februari 2028",
+        11: "Wage, 27 Maret 2028",
+        12: "Wage, 26 April 2028"
+    },
+    1450: {
+        1: "Wage, 26 Mei 2028",
+        2: "Pon, 24 Juni 2028",
+        3: "Pahing, 23 juli 2028",
+        4: "Pahing, 22 Agustus",
+        5: "Legi, 20 September 2028",
+        6: "Kliwon, 19 Oktober 2028",
+        7: "Kliwon, 18 November 2028",
+        8: "Wage, 17 Desember 2028",
+        9: "Wage, 16 Januari 2029",
+        10: "Wage, 15 Februari 2029",
+        11: "Pon, 16 Maret 2029",
+        12: "Pon, 16 April 2029"
+    }
+};
+
+function getTanggalMasehi(tmM, bmM) {
+    if (dataKonversi[tmM] && dataKonversi[tmM][bmM]) {
+        return dataKonversi[tmM][bmM];
+    } else {
+        return "No data";
+    }
+}
+let hasilTanggalMasehi = getTanggalMasehi(tmM, bmM);
+
+    const zonaWaktu = 7;
+    const φ = lokasi.lat;
+    const λ = lokasi.lon;
+    
+    const d2r = d => d * Math.PI / 180;
+    const r2d = r => r * 180 / Math.PI;
+    
+    
+    
+// ===============================
+// KONVERSI SUDUT & WAKTU
+// ===============================
+
+// Derajat → DMS
+const toDMS = x => {
+  const sign = x < 0 ? '-' : '';
+  x = Math.abs(x);
+
+  const d = Math.floor(x);
+  const mDecimal = (x - d) * 60;
+  const m = Math.floor(mDecimal);
+  let s = (mDecimal - m) * 60;
+
+  s = Math.round(s * 10) / 10;
+
+  return `${sign}${d}° ${m}′ ${s}″`;
+};
+
+// Jam desimal → HH:MM:SS
+const toHMS = x => {
+  x = (x + 24) % 24;
+
+  const h = Math.floor(x);
+  const mDecimal = (x - h) * 60;
+  const m = Math.floor(mDecimal);
+  let s = (mDecimal - m) * 60;
+
+  s = Math.round(s);
+
+  return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+};
+
+const toJMD = x => {
+  const sign = x < 0 ? '-' : '';
+  const absX = Math.abs(x);
+  
+  const h = Math.floor(absX);
+  const mDecimal = (absX - h) * 60;
+  const m = Math.floor(mDecimal);
+  let s = (mDecimal - m) * 60;
+  
+  s = Math.round(s);
+  
+  // Penanganan jika s = 60
+  if (s === 60) {
+    s = 0;
+    // Penanganan lebih lanjut jika perlu
+  }
+  
+  return `${sign}${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+};
+
+// Menit desimal → Menit & Detik
+function menitKeMS(x){
+  const sign = x < 0 ? '−' : '';
+  x = Math.abs(x);
+
+  const m = Math.floor(x);
+  let s = (x - m) * 60;
+
+  s = Math.round(s * 10) / 10;
+
+  return `${sign}${m}′ ${s}″`;
+}
+
+// ===============================
+// Derajat → Buruj DMS (30° = 1b)
+// ===============================
+function toBurujDMS(x){
+
+  const sign = x < 0 ? '-' : '';
+  x = Math.abs(x);
+
+  // Normalisasi 0–360
+  x = ((x % 360) + 360) % 360;
+
+  const buruj = Math.floor(x / 30);
+  const sisa  = x - (buruj * 30);
+
+  let d = Math.floor(sisa);
+  const mDecimal = (sisa - d) * 60;
+  let m = Math.floor(mDecimal);
+  let s = (mDecimal - m) * 60;
+
+  s = Math.round(s * 10) / 10;
+
+  // Koreksi jika detik overflow
+  if(s >= 60){
+    s = 0;
+    m += 1;
+  }
+
+  if(m >= 60){
+    m = 0;
+    d += 1;
+  }
+
+  return `${sign}${buruj}<sup>b</sup> ${d}° ${m}′ ${s}″`;
+}
+
+function toHariJMD(x) {
+  const sign = x < 0 ? '-' : '';
+  x = Math.abs(x);
+
+  // Normalisasi 0–168 (siklus mingguan)
+  x = ((x % 168) + 168) % 168;
+
+  const hari = Math.floor(x / 24);
+  const sisaJam = x - (hari * 24);
+
+  let h = Math.floor(sisaJam);
+  const mDecimal = (sisaJam - h) * 60;
+  let m = Math.floor(mDecimal);
+  let s = Math.round((mDecimal - m) * 60); // Dibulatkan ke detik terdekat
+
+  // Koreksi jika detik overflow
+  if (s >= 60) {
+    s = 0;
+    m += 1;
+  }
+
+  // Koreksi jika menit overflow
+  if (m >= 60) {
+    m = 0;
+    h += 1;
+  }
+
+  // Koreksi jika jam overflow ke hari berikutnya
+  if (h >= 24) {
+    h = 0;
+    // Tidak menambah hari karena format tetap dalam minggu
+  }
+
+  return `${sign}${hari}<sup>h</sup> ${h}:${m}:${s}`;
+}
+
+    let y = thnm;
+    let m = b_masehi;
+    if (m <= 2) { y--; m += 12; }
+    const A = Math.floor(y / 100);
+    const B = 2 - A + Math.floor(A / 4);
+    const JD = Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + hasilTgl + B - 1524.5;
+    
+    const T = (JD - 2451545) / 36525;
+    const L0 = (280.46646 + 36000.76983 * T) % 360;
+    const M = 357.52911 + 35999.05029 * T;
+    const C = (1.914602 - 0.004817 * T) * Math.sin(d2r(M)) + 0.019993 * Math.sin(d2r(2 * M));
+    const λ_matahari = L0 + C;
+    const ε = 23.439291 - 0.0130042 * T;
+    const δ = r2d(Math.asin(Math.sin(d2r(ε)) * Math.sin(d2r(λ_matahari))));
+    const E = 4 * r2d(Math.tan(d2r(ε/2))**2 * Math.sin(d2r(2*L0)) - 2 * 0.016708 * Math.sin(d2r(M)));
+    const zawal = 12 + zonaWaktu - (λ / 15) - (E / 60);
+    
+    const hitungBusur = (h) => {
+      const pembilang = Math.sin(d2r(h)) - Math.sin(d2r(φ)) * Math.sin(d2r(δ));
+      const penyebut = Math.cos(d2r(φ)) * Math.cos(d2r(δ));
+      const arg = pembilang / penyebut;
+      
+      if (arg <= -1) return 12;
+      if (arg >= 1) return 0;
+      
+      return r2d(Math.acos(arg)) / 15;
+    };
+    
+    const tMaghrib = hitungBusur(-0.833);
+    const tIsya = hitungBusur(-18);
+    const tSubuh = hitungBusur(-20);
+    const tTerbit = hitungBusur(-0.833);
+    const tDhuha = hitungBusur(4.5);
+    
+    const z = Math.tan(d2r(Math.abs(φ - δ)));
+    const hAshar = r2d(Math.atan(1 / (1 + z)));
+    const tAshar = hitungBusur(hAshar);
+
+    const terbit = zawal - tTerbit;
+    const dzh = zawal + (1/60);
+    const dzuhur = dzh.toFixed(3);
+    const mgb = zawal + tMaghrib + (2/60);
+    const maghrib = mgb.toFixed(3);
+    const sz = dzuhur - 12;
+    const sm = maghrib - 12;
+    
+let sig = bittatbieq % 24; let sig2 = sig.toFixed(3) 
+let siz;
+if (sig < sm) {
+    siz = sig + 6 + sz;
+} else if (sig < dzuhur) {
+    siz = sig + 6 + sz;
+} else if (sig < 18) {
+    siz = sig + 6 + sz;
+} else if (sig - 18 < 1) {
+    siz = (sig - 18) + 12 + sz ;
+} else {
+    siz = sig - 18;
+} 
+let siz2 = siz.toFixed(3);
+
+// Koreksi waktu maghrib dan zawal sampai sini
+let mig = 24 - sig; let mig2 = mig.toFixed(3); let irtipa = mig / 2; let irtipa2 = irtipa.toFixed(3);
 let mukstulhilal = irtipa * 0.0667; let mukstulhilal2 = mukstulhilal.toFixed(3);
 let hs = Math.round(hasilAkhirHissoh2); 
  
@@ -1290,159 +2167,77 @@ else if (drj <= 2) {ptkimkan = "3°";}
 else if (drj <= 3) {ptkimkan = "6°";}
 else if (drj <= 4) {ptkimkan = "7°";}
 
-let e = 1 + Math.trunc((tahunYangDimaksud * 11) / 30) + (tahunYangDimaksud * 354) + (totalbulan * 30) - Math.trunc((totalbulan - 1) / 2) - 384;let f = e + 227016;let g = Math.trunc(f / 1461);let thM = g * 4 + Math.trunc((f - g * 1461) / 365) + 1;let tjdIjt = sig <= 12 ? "Malam" : "Hari";let jmsiz = siz;let jmsiz2 = Math.trunc(jmsiz);let jmsiz3 = (jmsiz -jmsiz2) *60;let jmsiz4 = Math.trunc(jmsiz3);let jmsig = sig;let jmsig2 = Math.trunc(jmsig);let jmsig3 = (jmsig -jmsig2) *60;let jmsig4 = Math.trunc(jmsig3);let jmipa = irtipa;let jmipa2 = Math.trunc(jmipa);let jmipa3 = (jmipa -jmipa2) *60;let jmipa4 = Math.trunc(jmipa3);let jmmks = mukstulhilal;let jmmks2 = Math.trunc(jmmks);let jmmks3 = (jmmks -jmmks2) *60;let jmmks4 = Math.trunc(jmmks3);let qnh = nurilhilal;let qnh2 = Math.trunc(qnh);let qnh3 = (qnh -qnh2) *60;let qnh4 = Math.trunc(qnh3)
-const bulanHijriyah = ["Dzul Hijjah", "Muharom", "Sopar", "Robiul Awal", "Robius Stani","Jumadil Awal", "Jumadis Stani", "Rojab", "Syaban", "Rhomadhon","Syawal", "Dzulqodah"];let namebulan = bulanHijriyah[(totalbulan - 1 + 12) % 12];
+let e = 1 + Math.trunc((tahunYangDimaksud * 11) / 30) + (tahunYangDimaksud * 354) + (totalbulan * 30) - Math.trunc((totalbulan - 1) / 2) - 384;
+let tjdIjt = sig <= 12 ? "Malam" : "Hari";
 
-// KONVERSEI TANGGAL HIJRI -> MASEHI
+let jmsiz = siz;
+let jmsig = sig;
+let jmipa = irtipa;
+let jmmks = mukstulhilal;
+let qnh = nurilhilal;
 
-const tgl = 1;
-const bln = parseInt(document.getElementById('bulanhijriyah').value);
-const thnabc = parseInt(document.getElementById('tahunmajmuah').value);
-const thnxyz = parseInt(document.getElementById('tahunmabsutoh').value);
+const bulanHijriyah = ["Dzul Hijjah", "Muharom", "Sopar", "Robiul Awal", "Robiul Akhir","Jumadil Awal", "Jumadil Akhir", "Rojab", "Syaban", "Rhomadhon","Syawal", "Dzulqodah"];let namebulan = bulanHijriyah[(totalbulan - 1 + 12) % 12];
 
-const thn = thnabc + thnxyz;
+// KOREKSI WAKTU MAGHBRIB DAN ZAWAL
 
-let tth = thn - 1;
-    let daor = Math.trunc(tth / 30);
-    let st = tth % 30;
-    let jth = daor * 10631;
-    let thst = st * 354;
-
-let ak;
-    if (st <= 4) ak = 1;
-    else if (st <= 6) ak = 2;
-    else if (st <= 9) ak = 3;
-    else if (st <= 12) ak = 4;
-    else if (st <= 15) ak = 5;
-    else if (st <= 17) ak = 6;
-    else if (st <= 20) ak = 7;
-    else if (st <= 23) ak = 8;
-    else if (st <= 25) ak = 9;
-    else if (st <= 29) ak = 10;
-    
-    const jhdsMap = { 
-        1: 0, 2: 30, 3: 59, 4: 89, 5: 118, 
-        6: 148, 7: 177, 8: 207, 9: 236, 
-        10: 266, 11: 295, 12: 325 
-    };
-    
-    let jhds = jhdsMap[bln];
-    let jhhk = jth + thst + ak + jhds + tgl;
-    let jhmk = 227014 + jhhk; 
-    // Lanjutan setelah jhmk
-let tkt_ttM = jhmk / 365.2425;
-let ttM = Math.trunc(tkt_ttM);
-let sttm = tkt_ttM - ttM;
-let jhp = Math.round(sttm * 365.2425) ;
-let thnm = ttM + 1;
-
-let b_masehi;
-let b_masehi_nama;
-if (jhp <= 31) { b_masehi = 1; b_masehi_nama = "Januari"; }
-else if (jhp <= 59) { b_masehi = 2; b_masehi_nama = "Februari"; }
-else if (jhp <= 90) { b_masehi = 3; b_masehi_nama = "Maret"; }
-else if (jhp <= 120) { b_masehi = 4; b_masehi_nama = "April"; }
-else if (jhp <= 151) { b_masehi = 5; b_masehi_nama = "Mei"; }
-else if (jhp <= 181) { b_masehi = 6; b_masehi_nama = "Juni"; }
-else if (jhp <= 212) { b_masehi = 7; b_masehi_nama = "Juli"; }
-else if (jhp <= 243) { b_masehi = 8; b_masehi_nama = "Agustus"; }
-else if (jhp <= 273) { b_masehi = 9; b_masehi_nama = "September"; }
-else if (jhp <= 304) { b_masehi = 10; b_masehi_nama = "Oktober"; }
-else if (jhp <= 334) { b_masehi = 11; b_masehi_nama = "November"; }
-else { b_masehi = 12; b_masehi_nama = "Desember"; }
-
-let x_tglmm;
-switch(b_masehi) {
-    case 1: x_tglmm = 0; break;
-    case 2: x_tglmm = 31; break;
-    case 3: x_tglmm = 59; break;
-    case 4: x_tglmm = 90; break;
-    case 5: x_tglmm = 120; break;
-    case 6: x_tglmm = 151; break;
-    case 7: x_tglmm = 181; break;
-    case 8: x_tglmm = 212; break;
-    case 9: x_tglmm = 243; break;
-    case 10: x_tglmm = 273; break;
-    case 11: x_tglmm = 304; break;
-    case 12: x_tglmm = 334; break;
-    default: x_tglmm = 0;
-}
-let tglmm = Math.round(jhp - x_tglmm);
-
-let xh = jhhk % 7;
-let hariMM;
-switch(xh) {
-    case 0: hariMM = "Kamis"; break;
-    case 1: hariMM = "Jumat"; break;
-    case 2: hariMM = "Sabtu"; break;
-    case 3: hariMM = "Minggu"; break;
-    case 4: hariMM = "Senin"; break;
-    case 5: hariMM = "Selasa"; break;
-    case 6: hariMM = "Rabu"; break;
-    default: hariMM = "-";
-}
-
-let xp = jhhk % 5;
-let pasar;
-switch(xp) {
-    case 0: pasar = "Kliwon"; break;
-    case 1: pasar = "Legi"; break;
-    case 2: pasar = "Pahing"; break;
-    case 3: pasar = "Pon"; break;
-    case 4: pasar = "Wage"; break;
-    default: pasar = "-";
-}
-let hasilTgl = tglmm === 0 ? 31 : tglmm;
-  
-  
    document.getElementById('hasilHisabAkhirBulan').innerHTML = `
    
-      <div class="card sholat-list">
-    <div class="row"><span>Total Alamah</span><b>${hasilAkhirAlamah3}</b></div>
-    <div class="row"><span>Total Hissoh</span><b>${hasilAkhirHissoh3}</b></div>
-    <div class="row"><span>Total Wasath</span><b>${hasilAkhirWasat3}</b></div>
-    <div class="row"><span>Total Khosoh</span><b>${hasilAkhirKhosoh3}</b></div>
-    <div class="row"><span>Total Markaz</span><b>${hasilAkhirMarkaz3}</b></div>
-    <div class="row"><span>Ta'dil Khosoh</span><b>${tadilkhosoh}</b></div>
-    <div class="row"><span>Ta'dil Markaz</span><b>${tadilmarkaz}</b></div>
-    <div class="row"><span>Bu'du Goer Muadal</span><b>${buduGoerMuadal2}</b></div>
-    <div class="row"><span>Hasilu Dorob</span><b>${hasildorob2}</b></div>
-    <div class="row"><span>Ta'dil Wasath</span><b>${tadilwasat2}</b></div>
-    <div class="row"><span>Muqowam Syamsi</span><b>${muqowwamsyamsi2}</b></div>
-    <div class="row"><span>Yaqoul Ijtima Pii burj</span><b>(${mq1}) ${mq2}</b></div>
-    <div class="row"><span>Hai'atul Hilal</span><b>${mq3}</b></div>
-    <div class="row"><span>Ta'dil Ayyam</span><b>${tadilayyam}</b></div>
-    <div class="row"><span>Bu'du Muadal</span><b>${budumuadal2}</b></div>
-    <div class="row"><span>Thuul Syams</span><b>${thulsyamsi2}</b></div>
-    <div class="row"><span>Hissoh Saah</span><b>${hissohsaah}</b></div>
-    <div class="row"><span>Ta'dil Alamah</span><b>${tadilalamah2}</b></div>
-    <div class="row"><span>Alamah Muadalah JKT</span><b>${jkt3}</b></div>
-    <div class="row"><span>Thul Balad</span><b>${koorlong}</b></div>
-    <div class="row"><span>Selisih Waktu</span><b>${selisihwaktu2}</b></div>
-    <div class="row"><span>Alamah Muadalah Bibaladika</span><b>${bittatbieq2}</b></div>
-    <div class="row"><span>Yaqoul Ijtima</span><b>(${indexYaqoulijtima}) ${yaqoulijtima}</b></div>
-    <div class="row"><span>Sa'ah Ijtima Gurubiyah</span><b>${sig2}</b></div>
-    <div class="row"><span>Saah Ijtima Zawaliyah / (WIB)</span><b>${siz2}</b></div>
-    <div class="row"><span>Minal Ijtima Ilal-gurub</span><b>${mig2}</b></div>
-    <div class="row"><span>Irtipa Hilal Ba'dal-gurub</span><b>${irtipa2}</b></div>
-    <div class="row"><span>Mukstul Hilal Fauqol-ufq</span><b>${mukstulhilal2}</b></div>
-    <div class="row"><span>Kamyah Ardl-qomar</span><b>${kamyah}</b></div>
-    <div class="row"><span>Qous nuril-hilal</span><b>${nurilhilal2}</b></div>
-    
+   <div class="hisab-list">
+    <div class="row"><span>Total Alamah</span><span>${toBurujDMS(hasilAkhirAlamah3)}</span></div>
+    <div class="row"><span>Total Hissoh</span><span>${toBurujDMS(hasilAkhirHissoh3)}</span></div>
+    <div class="row"><span>Total Wasath</span><span>${toBurujDMS(hasilAkhirWasat3)}</span></div>
+    <div class="row"><span>Total Khosoh</span><span>${toBurujDMS(hasilAkhirKhosoh3)}</span></div>
+    <div class="row"><span>Total Markaz</span><span>${toBurujDMS(hasilAkhirMarkaz3)}</span></div>
+    <div class="row"><span>Ta'dil Khosoh (Tabel)</span><span>${toDMS(tadilkhosoh)}</span></div>
+    <div class="row"><span>Ta'dil Markaz (Tabel)</span><span>${toDMS(tadilmarkaz)}</span></div>
+    <div class="row"><span>Bu'du Goer Muadal</span><span>${toDMS(buduGoerMuadal2)}</span></div>
+    <div class="row"><span>Hasilu Dorob</span><span>${toDMS(hasildorob2)}</span></div>
+    <div class="row"><span>Ta'dil Wasath</span><span>${toDMS(tadilwasat2)}</span></div>
+    <div class="row"><span>Muqowam Syamsi</span><span>${toBurujDMS(muqowwamsyamsi2)}</span></div>
+    <div class="row"><span>Yaqoul Ijtima Pii burj</span><span>${mq2}</span></div>
+    <div class="row"><span>Hai'atul Hilal</span><span>${mq3}</span></div>
+    <div class="row"><span>Ta'dil Ayyam (Tabel)</span><span>${toDMS(tadilayyam)}</span></div>
+    <div class="row"><span>Bu'du Muadal</span><span>${toDMS(budumuadal2)}</span></div>
+    <div class="row"><span>Thuul Syams</span><span>${toBurujDMS(thulsyamsi2)}</span></div>
+    <div class="row"><span>Hissoh Saah (Tabel)</span><span>${toDMS(hissohsaah)}</span></div>
+    <div class="row"><span>Ta'dil Alamah</span><span>${toDMS(tadilalamah2)}</span></div>
+    <div class="row"><span>Alamah Muadalah Jakarta</span><span>${toHariJMD(jkt2)}</span></div>
+    <div class="row"><span>Thul Balad / Longitude</span><span>${toDMS(koorlong)}</span></div>
+    <div class="row"><span>Selisih Waktu </span><span>${toJMD(selisihwaktu)}</span></div>
+    <div class="row"><span>Arah Wilayah Lokal </span><span>${arah}</span></div>
+    <div class="row"><span>Alamah Muadalah - Ihtiyath +1 Jam</span><span>${toHariJMD(bittatbieq)}</span></div>
+    <div class="row"><span>Yaqoul Ijtima</span><span>${indexYaqoulijtima}<sup>h</sup> ${yaqoulijtima}</span></div>
+    <div class="row"><span>Arudh Balad / Latitude</span><span>${toDMS(koorlat)}</span></div> 
+    <div class="row"><span>Waktu Zawal Saat Ijtima</span><span>${toHMS(zawal)}</span></div>
+    <div class="row"><span>Waktu Maghrib Saat Ijtima</span><span>${toHMS(maghrib)}</span></div>
+    <div class="row"><span>Saah Ijtima Bilgurubiyah</span><span>${toHMS(sig2)}</span></div>
+    <div class="row"><span>Saah Ijtima Bizzawaliyah</span><span>${toHMS(siz2)}</span></div>
+    <div class="row"><span>Minal Ijtima Ilal-gurub</span><span>${toHMS(mig2)}</span></div>
+    <div class="row"><span>Irtipa Hilal Ba'dal-gurub</span><span>${toDMS(irtipa2)}</span></div>
+    <div class="row"><span>Mukstul Hilal Fauqol-ufq</span><span>${toDMS(mukstulhilal2)}</span></div>
+    <div class="row"><span>Kamyah Ardl-qomar (Tabel)</span><span>${toDMS(kamyah)}</span></div>
+    <div class="row"><span>Qous nuril-hilal (Tabel)</span><span>${toDMS(nurilhilal2)}</span></div>
+<div class="ringkasan"><b>* RINGKASAN *</b></div>
     <div class="poinHasilHisab">
-    <div class=""><span>Awal Bulan: </span><b>${bulanYangDimaksud} ${tahunYangDimaksud} H</b></div>
-    <div class=""><span>Jatuh Pada Hari: </span><b>${jatuhhari} ${pasar}, ${hasilTgl} ${b_masehi_nama} ${thM} </b></div>
-    <div class=""><span>Ijtima Terjadi Pada ${tjdIjt}:</span><b> ${yaqoulijtima}, ${thM}</b></div>
-    <div class=""><span>Jam Ijtima  </span><b>${jmsiz2}:${jmsiz4} WIB | ${jmsig2}:${jmsig4} WGB </b></div>
-    <div class=""><span>Ketinggian Hilal </span><b>{Malam ${yaqoulijtima2}} ${jmipa2}°${jmipa4}'</b></div>
-    <div class=""><span>Patokan Imkan </span><b>${ptkimkan} | [${ikngoerikn}]</b></div>
-    <div class=""><span>Lama Hilal diatas Ufuk ${jmmks2}:${jmmks4}</span><b></b></div>
-    <div class=""><span>Condongnya Hilal Miring ke ${mq3}</span><b></b></div>
-    <div class=""><span>Cahaya Hilal ${qnh2}°${qnh4}</span><b></b></div>
+    <div class="row"><span>Awal Bulan </span>
+    <span>${bulanYangDimaksud} ${tahunYangDimaksud} H</span></div>
+    <div class="row"><span>Jatuh Pada Hari </span>
+    <span>${jatuhhari} ${hasilTanggalMasehi} M</span></div>
+    <div class="row"><span>Ijtima Terjadi Pada ${tjdIjt}</span><span> ${yaqoulijtima}</span></div>
+    <div class="row"><span>Jam Ijtima </span>
+    <span>${toHMS(jmsiz)} WIS | ${toHMS(jmsig)} WGB </span></div>
+    <div class="row"><span>Ketinggian Hilal </span>
+    <span>{Malam ${yaqoulijtima2}} ${toDMS(jmipa)}'</span></div>
+    <div class="row"><span>Patokan Imkan </span><span>${ptkimkan} | [${ikngoerikn}]</span></div>
+    <div class="row"><span>Lama Hilal diatas Ufuk </span><span>${toDMS(jmmks)}</span></div>
+    <div class="row"><span>Condongnya Hilal Miring ke </span><span>${mq3}</span></div>
+    <div class="row"><span>Cahaya Hilal </span>
+    <span>${toDMS(qnh)}</span></div>
     </div>
     
 
-   <div class=""><b>TN: </b><span>Penangalan masehi memakai hisab urfi</span></div>
+   <div class="note"><small>* Penangalan masehi memakai hisab urfi / Istilahi</small></div>
+   <div class="note"><small>* Harap koreksi jika ada kesalahan hitungan</small></div>
    
    </div>
    
@@ -1467,6 +2262,243 @@ if (btnBackToIjtima) {
     tabs[0].classList.add('active');
 
     contents.forEach(c => c.classList.add('hidden'));
-    contentAkhir.classList.remove('hidden');
+    inputIjtima.classList.remove('hidden');
   };
 }
+
+/* ===============================
+   ELEMENT UTAMA KALKULATOR
+================================ */
+const btnMenuKalkulator   = document.getElementById('menu-kalkulator'); // footer
+const overlayKalkulator   = document.getElementById('kalkulatorOverlay');
+const panelKalkulator     = document.getElementById('panelKalkulator');
+const btnCloseKalkulator  = document.getElementById('closeKalkulator');
+
+/* ===============================
+   TAB & KONTEN KALKULATOR
+================================ */
+const tabsK = document.querySelectorAll('.kalkulator-tabs .tab');
+const inputHariTahlil  = document.getElementById('inputHariTahlil');
+const inputHariLahir  = document.getElementById('inputHariLahir');
+const contentsK = [inputHariTahlil, inputHariLahir];
+/* ===============================
+   PANEL HASIL KALKULATOR > HARI TAHLIL
+================================ */
+const panelHasilHariTahlil = document.getElementById('panelHasilHariTahlil');
+const btnHitungTahlilH  = document.getElementById('btnHitungTahlilH');
+const btnBackHariTahlil = document.getElementById('btnBackHariTahlil');
+const hasilHariTahlil = document.getElementById('hasilHariTahlil');
+
+/* ===============================
+   OPEN PANEL KALKULATOR
+================================ */
+if (btnMenuKalkulator) {
+  btnMenuKalkulator.onclick = () => {
+    overlayKalkulator.classList.remove('hidden');
+    panelKalkulator.classList.remove('hidden');
+
+    // reset tab
+    tabsK.forEach(t => t.classList.remove('active'));
+    tabsK[0].classList.add('active');
+
+
+
+
+  };
+}
+/* ===============================
+   CLOSE PANEL KALKULATOR
+================================ */
+function closeKalkulatorPanel(){
+  overlayKalkulator.classList.add('hidden');
+  panelKalkulator.classList.add('hidden');
+  if (panelHasilHariTahlil) panelHasilHariTahlil.classList.add('hidden');
+}
+
+overlayKalkulator.onclick  = closeKalkulatorPanel;
+closeKalkulator.onclick = closeKalkulatorPanel;
+
+/* ===============================
+   TAB HANDLER
+================================ */
+tabsK.forEach((tab, index) => {
+  tab.onclick = () => {
+    tabsK.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+
+    contentsK.forEach(c => c.classList.add('hidden'));
+    contentsK[index].classList.remove('hidden');
+  };
+});
+
+if (btnHitungTahlilH) {
+  btnHitungTahlilH.onclick = () => {
+
+    inputHariTahlil.classList.add("hidden");
+    panelHasilHariTahlil.classList.remove("hidden");
+
+    // ambil nilai input
+    const tglWafat = parseInt(document.getElementById("tglWafat").value);
+    const blnWafat = parseInt(document.getElementById("blnWafat").value);
+    const thnWafat = parseInt(document.getElementById("thnWafat").value);
+
+    const namaBulanH = [
+      "", "Muharram","Shafar","Rabiul Awal","Rabiul Akhir",
+      "Jumadil Awal","Jumadil Akhir","Rajab","Sya'ban",
+      "Ramadhan","Syawal","Dzulqa'dah","Dzulhijjah"
+    ];
+
+    function hariBulanH(bulan) {
+      return bulan % 2 === 1 ? 30 : 29; // urfi
+    }
+
+    function tambahHariH(t, b, y, n) {
+      while (n > 0) {
+        let sisa = hariBulanH(b) - t;
+        if (n <= sisa) {
+          t += n;
+          n = 0;
+        } else {
+          n -= (sisa + 1);
+          t = 1;
+          b++;
+          if (b > 12) {
+            b = 1;
+            y++;
+          }
+        }
+      }
+      return { t, b, y };
+    }
+
+    const agenda = [
+      { nama: "1 Hari", h: 0 },
+      { nama: "3 Hari", h: 2 },
+      { nama: "7 Hari", h: 6 },
+      { nama: "40 Hari", h: 39 },
+      { nama: "100 Hari", h: 99 },
+      { nama: "Haul (1 Tahun)", y: 1 }
+    ];
+let html = `
+  <div class="card">
+    <table class="tahlil-table">
+      <thead>
+        <tr>
+          <th>Amalan</th>
+          <th>Tanggal Hijriyah</th>
+        </tr>
+      </thead>
+      <tbody>
+`;
+
+agenda.forEach(a => {
+  let r;
+  if (a.y) {
+    r = { t: tglWafat, b: blnWafat, y: thnWafat + a.y };
+  } else {
+    r = tambahHariH(tglWafat, blnWafat, thnWafat, a.h);
+  }
+
+  html += `
+    <tr>
+      <td><span>${a.nama}</span></td>
+      <td>${r.t} ${namaBulanH[r.b]} ${r.y} H</td>
+    </tr>
+  `;
+});
+
+html += `
+      </tbody>
+    </table>
+    <div class="note">
+      <small>* Perhitungan berdasarkan Hijriyah (hisab urfi)</small>
+    </div>
+  </div>
+`;
+
+hasilHariTahlil.innerHTML = html;
+    
+  };
+}
+
+if (btnBackHariTahlil) {
+  btnBackHariTahlil.onclick = () => {
+    inputHariTahlil.classList.remove("hidden");
+    panelHasilHariTahlil.classList.add("hidden");
+  };
+}
+
+const btnHitungHari = document.getElementById('calculateDays')
+if (btnHitungHari) {
+  btnHitungHari.onclick = () => { 
+    
+    const birthdate = document.getElementById('birthdate').value;
+      const resultDays = document.getElementById('resultDays');
+      const resultYearsMonthsDays = document.getElementById('resultYearsMonthsDays');
+      if (birthdate) {
+        const birthDateObj = new Date(birthdate);
+        const currentDate = new Date();
+        const timeDifference = currentDate - birthDateObj;
+        const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+        resultDays.value = daysDifference;
+
+        // Calculate years, months, and days
+        let years = currentDate.getFullYear() - birthDateObj.getFullYear();
+        let monthsL = currentDate.getMonth() - birthDateObj.getMonth();
+        let daysL = currentDate.getDate() - birthDateObj.getDate();
+
+        if (daysL < 0) {
+          monthsL--;
+          daysL += new Date(currentDate.getFullYear(), currentDate.getMonth(), 0).getDate();
+        }
+
+        if (monthsL < 0) {
+          years--;
+          monthsL += 12;
+        }
+
+        resultYearsMonthsDays.value = `${years} Tahun, ${monthsL} Bulan, ${daysL} Hari`;
+      } else {
+        resultDays.value = 'Please enter a valid date';
+        resultYearsMonthsDays.value = '';
+      }
+    
+  }
+}
+
+/* ===============================
+   ELEMENT UTAMA LAINNYA
+================================ */
+const btnMenuLainnya   = document.getElementById('menu-lainnya'); // footer
+const overlayLainnya   = document.getElementById('lainnyaOverlay');
+const panelLainnya     = document.getElementById('panelLainnya');
+const btnCloseLainnya  = document.getElementById('closeLainnya');
+
+/* ===============================
+   TAB & KONTEN LAINNYA
+================================ */
+const tabsLainnya = document.querySelectorAll('.lainnya-tabs .tab');
+const contentsLainnya = [];
+
+if (btnMenuLainnya) {
+  btnMenuLainnya.onclick = () => {
+    overlayLainnya.classList.remove('hidden');
+    panelLainnya.classList.remove('hidden');
+
+    // reset tab
+    tabsLainnya.forEach(t => t.classList.remove('active'));
+    tabsLainnya[0].classList.add('active');
+
+  };
+}
+
+/* ===============================
+   CLOSE PANEL KALKULATOR
+================================ */
+function closeLainnyaPanel(){
+  overlayLainnya.classList.add('hidden');
+  panelLainnya.classList.add('hidden');
+}
+
+overlayLainnya.onclick  = closeLainnyaPanel;
+closeLainnya.onclick = closeLainnyaPanel;
