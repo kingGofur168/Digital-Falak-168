@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teman Diskusi AI - Pasti Jalan</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0a0a12 0%, #12101f 30%, #0d1117 70%, #0a0a12 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 750px;
+            height: 93vh;
+            background: rgba(16, 14, 28, 0.7);
+            backdrop-filter: blur(30px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+        }
+        
+        .header {
+            padding: 14px 20px;
+            background: rgba(255, 255, 255, 0.015);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .header-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+        }
+        
+        .header-text h1 {
+            color: #e8e0f0;
+            font-size: 1.05em;
+            font-weight: 600;
+        }
+        
+        .header-text .subtitle {
+            color: #8b7fa8;
+            font-size: 0.7em;
+        }
+        
+        .model-badge {
+            margin-left: auto;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            color: #4ade80;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.65em;
+            font-weight: 500;
+        }
+        
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            scroll-behavior: smooth;
+        }
+        
+        .message {
+            display: flex;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.user { flex-direction: row-reverse; }
+        
+        .avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+        
+        .message.user .avatar { 
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+        
+        .message.ai .avatar { 
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+        }
+        
+        .bubble {
+            max-width: 78%;
+            padding: 13px 17px;
+            border-radius: 16px;
+            line-height: 1.6;
+            font-size: 0.9em;
+            word-wrap: break-word;
+        }
+        
+        .message.user .bubble {
+            background: linear-gradient(135deg, #22c55e, #15803d);
+            color: #f0fdf4;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message.ai .bubble {
+            background: rgba(255, 255, 255, 0.03);
+            color: #d8d0e8;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-bottom-left-radius: 4px;
+        }
+        
+        .bubble p { margin: 3px 0; }
+        .bubble p:first-child { margin-top: 0; }
+        .bubble p:last-child { margin-bottom: 0; }
+        .bubble strong { color: #86efac; }
+        .bubble em { color: #c4b5fd; }
+        
+        .input-area {
+            padding: 12px 18px;
+            background: rgba(255, 255, 255, 0.015);
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .input-area input {
+            flex: 1;
+            padding: 13px 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            color: #e8e0f0;
+            font-size: 0.9em;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .input-area input:focus {
+            border-color: #22c55e;
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.06);
+        }
+        
+        .input-area input::placeholder { color: #5c5470; }
+        
+        .input-area button {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+        
+        .input-area button:hover {
+            transform: scale(1.06);
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.35);
+        }
+        
+        .input-area button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 13px 17px;
+        }
+        
+        .typing-indicator span {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #8b7fa8;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+        
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-8px); }
+        }
+        
+        .setup-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(5, 5, 15, 0.92);
+            backdrop-filter: blur(15px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .setup-box {
+            background: linear-gradient(145deg, #1a1530, #141028);
+            padding: 30px 25px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 92%;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .setup-box .logo { font-size: 2.5em; margin-bottom: 8px; }
+        .setup-box h2 { color: #e8e0f0; margin-bottom: 5px; font-size: 1.2em; }
+        .setup-box .desc { color: #8b7fa8; margin-bottom: 16px; font-size: 0.8em; line-height: 1.4; }
+        .setup-box a { color: #4ade80; text-decoration: none; font-weight: 500; }
+        .setup-box a:hover { text-decoration: underline; }
+        
+        .setup-box input {
+            width: 100%;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            color: #e8e0f0;
+            font-size: 0.88em;
+            outline: none;
+            transition: border 0.3s;
+        }
+        
+        .setup-box input:focus { border-color: #22c55e; }
+        
+        .setup-box button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .setup-box button:hover { box-shadow: 0 6px 25px rgba(34, 197, 94, 0.35); }
+        
+        .error-message {
+            color: #f87171;
+            font-size: 0.76em;
+            margin-top: 8px;
+            display: none;
+        }
+        
+        .security-note {
+            font-size: 0.63em;
+            color: #5c5470;
+            margin-top: 10px;
+        }
+        
+        .status-msg {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            color: #86efac;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.7em;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .chat-area::-webkit-scrollbar { width: 4px; }
+        .chat-area::-webkit-scrollbar-track { background: transparent; }
+        .chat-area::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.07); border-radius: 10px; }
+        
+        @media (max-width: 500px) {
+            .container { height: 100vh; border-radius: 0; max-width: 100%; }
+            .bubble { max-width: 85%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="setup-overlay" id="setupOverlay">
+    <div class="setup-box">
+        <div class="logo">✅</div>
+        <h2>Masukkan Groq API Key</h2>
+        <p class="desc">
+            Gratis di <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a><br>
+            Double fallback — pasti jalan!
+        </p>
+        <input type="password" id="apiKeyInput" placeholder="gsk_...">
+        <button onclick="saveApiKey()">🚀 Mulai Diskusi</button>
+        <p class="error-message" id="errorMsg">❌ Format salah. Harus diawali "gsk_"</p>
+        <p class="security-note">🔒 Key disimpan aman di browser Anda saja</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="header">
+        <div class="header-icon">✅</div>
+        <div class="header-text">
+            <h1>Teman Diskusi AI</h1>
+            <p class="subtitle">Double Fallback · Pasti Jalan</p>
+        </div>
+        <span class="model-badge" id="modelBadge">Auto-Select</span>
+    </div>
+    
+    <div class="chat-area" id="chatArea">
+        <div class="message ai">
+            <div class="avatar">✅</div>
+            <div class="bubble">
+                <p>Halo! 👋 Gue partner diskusi lo.</p>
+                <p>Gue pakai <strong>sistem double fallback</strong> — kalau model 1 error, otomatis pindah ke model 2.</p>
+                <p>Gue bakal <strong>challenge ide lo</strong> dengan tajam!</p>
+                <p>🔥 <strong>Lempar topik — gue siap!</strong></p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Tulis pendapat atau topik diskusi..." onkeypress="handleKeyPress(event)" autocomplete="off">
+        <button onclick="sendMessage()" id="sendBtn" title="Kirim">▶</button>
+    </div>
+</div>
+
+<script>
+    let apiKey = localStorage.getItem('groq_api_key_v2');
+    let conversationHistory = [];
+    
+    // Daftar model fallback — coba dari atas ke bawah
+    const MODEL_LIST = [
+        'llama-3.2-3b-instruct',      // Model kecil, paling baru, hampir pasti hidup
+        'llama-3.1-8b-instant',        // Fallback 2
+        'gemma2-9b-it',                // Fallback 3
+        'mixtral-8x7b-32768'           // Fallback 4 (last resort)
+    ];
+    
+    let currentModel = localStorage.getItem('groq_active_model') || MODEL_LIST[0];
+    
+    if (!apiKey) {
+        document.getElementById('setupOverlay').style.display = 'flex';
+    } else {
+        document.getElementById('setupOverlay').style.display = 'none';
+        document.getElementById('modelBadge').textContent = currentModel;
+    }
+    
+    function saveApiKey() {
+        const key = document.getElementById('apiKeyInput').value.trim();
+        if (key.startsWith('gsk_')) {
+            localStorage.setItem('groq_api_key_v2', key);
+            apiKey = key;
+            document.getElementById('setupOverlay').style.display = 'none';
+            document.getElementById('errorMsg').style.display = 'none';
+            document.getElementById('userInput').focus();
+        } else {
+            document.getElementById('errorMsg').style.display = 'block';
+        }
+    }
+    
+    async function sendMessage() {
+        const input = document.getElementById('userInput');
+        const message = input.value.trim();
+        if (!message) return;
+        
+        document.getElementById('sendBtn').disabled = true;
+        document.getElementById('userInput').disabled = true;
+        
+        addMessage('user', message);
+        input.value = '';
+        
+        const typingId = addTypingIndicator();
+        
+        try {
+            const response = await callWithFallback(message);
+            removeTypingIndicator(typingId);
+            addMessage('ai', response);
+        } catch (error) {
+            removeTypingIndicator(typingId);
+            addMessage('ai', '❌ Semua model gagal. Coba buat API key baru di console.groq.com');
+            console.error(error);
+        }
+        
+        document.getElementById('sendBtn').disabled = false;
+        document.getElementById('userInput').disabled = false;
+        document.getElementById('userInput').focus();
+    }
+    
+    async function callWithFallback(userMessage) {
+        // Coba model yang terakhir berhasil dulu
+        const modelsToTry = [currentModel, ...MODEL_LIST.filter(m => m !== currentModel)];
+        
+        let lastError = null;
+        
+        for (const model of modelsToTry) {
+            try {
+                console.log(`Mencoba model: ${model}...`);
+                const result = await tryModel(model, userMessage);
+                
+                // Berhasil! Simpan sebagai model aktif
+                if (model !== currentModel) {
+                    currentModel = model;
+                    localStorage.setItem('groq_active_model', currentModel);
+                    document.getElementById('modelBadge').textContent = currentModel;
+                    addStatusMessage(`✅ Beralih ke model: ${model}`);
+                }
+                
+                return result;
+            } catch (error) {
+                console.log(`Model ${model} gagal: ${error.message}`);
+                lastError = error;
+                // Lanjut ke model berikutnya
+            }
+        }
+        
+        throw lastError || new Error('Semua model gagal');
+    }
+    
+    async function tryModel(model, userMessage) {
+        const systemPrompt = `Kamu adalah PAKAR FALAK yang bertugas di website Digital Falak. Pengguna adalah murid yang ingin berdiskusi.
+
+ATURAN:
+1. Jawablah pertanyaan falak dengan DALAM, AKURAT, dan berdasarkan DALIL. Jawab pertanyaan sesuai yang ada di dalam kode, dibawah ini adalah beberapa kode yang harus kamu kuasai
+ A. Konversi
+ jika ada pertanyaan tentang konversi hijriyah ke masehi atau masehi ke hijiyah maka kamu harus menjawabnya sesuai hitungan kode dibawah ini
+ A1. Kode konversi Masehi ke hijiri dibawah ini adalah kodenya:
+ 
+ const v1=parseInt(document.getElementById('inputTanggalMH').value);
+    const v2=parseInt(document.getElementById('inputBulanMH').value);
+    const v3=parseInt(document.getElementById('inputTahunMH').value);
+    const mN={1:"Muharram",2:"Safar",3:"Rabiul Awal",4:"Rabiul Akhir",5:"Jumadil Awal",6:"Jumadil Akhir",7:"Rajab",8:"Sya'ban",9:"Ramadhan",10:"Syawal",11:"Dzulqo'dah",12:"Dzulhijjah"};const mM={1:"Januari",2:"Februari",3:"Maret",4:"April",5:"Mei",6:"Juni",7:"Juli",8:"Agustus",9:"September",10:"Oktober",11:"November",12:"Desember"};let a=Math.trunc((14-v2)/12);let y=v3+4800-a;let m=v2+12*a-3;let jdn=v1+Math.trunc((153*m+2)/5)+365*y+Math.trunc(y/4)-Math.trunc(y/100)+Math.trunc(y/400)-32045;let jh=jdn-1948439;let d=Math.trunc(jh/10631);let s=jh%10631;let ts=Math.trunc((s-1)/354);let ht=(s-1)%354;let k=Math.trunc((11*ts+3)/30);if(ht>=k){ht-=k;}let th=d*30+ts+1;let b;if(ht<30)b=1;else if(ht<59)b=2;else if(ht<89)b=3;else if(ht<118)b=4;else if(ht<148)b=5;else if(ht<177)b=6;else if(ht<207)b=7;else if(ht<236)b=8;else if(ht<266)b=9;else if(ht<295)b=10;else if(ht<325)b=11;else b=12;const ab=[0,0,30,59,89,118,148,177,207,236,266,295,325];let t=ht-ab[b]+1;hasilKonversiM_H.innerHTML=`<div class="card hisab-list"><div class="row"><span>a</span><span>${a}</span></div><div class="row"><span>y</span><span>${y}</span></div><div class="row"><span>m</span><span>${m}</span></div><div class="row"><span>JDN</span><span>${jdn}</span></div><div class="row"><span>jh</span><span>${jh}</span></div><div class="row"><span>daur</span><span>${d}</span></div><div class="row"><span>Sisa Hari</span><span>${s}</span></div><div class="row"><span>Tahun Sisa</span><span>${ts}</span></div><div class="row"><span>kabisat</span><span>${k}</span></div><div class="row"><span>h-Tahun</span><span>${ht}</span></div><div class="row"><span>bulan</span><span>${mN[b]}</span></div><div class="row"><span>tglH</span><span>${t}</span></div><div class="poinHasilHisab"><div><span>${v1} ${mM[v2]} ${v3}</span></div><div><span>${t} ${mN[b]} ${th}</span></div></div></div>`;};}
+
+..... konversi masehi ke hijri sampai sini.
+
+
+ 
+ 
+ 
+2. Sebelum menjawab, selalu INGAT dan ANALISIS isi dari website https://www.digitalfalak.com/ yang sudah kamu baca.
+3. Jika jawaban tidak ditemukan di website, beri tahu dengan jujur, lalu berikan jawaban berdasarkan ilmu falak klasik yang kamu kuasai.
+4. Gunakan istilah-istilah falak yang tepat (hisab, rukyat, ijtima, dll.).
+5. Format jawaban: Sampaikan dalil atau metode dari website terlebih dahulu, lalu berikan penjelasan dengan analogi yang mudah dipahami.
+6. JANGAN PERNAH mengarang di luar ilmu falak.`;
+
+        conversationHistory.push({ role: "user", content: userMessage });
+        if (conversationHistory.length > 16) conversationHistory = conversationHistory.slice(-16);
+        
+        const messages = [
+            { role: "system", content: systemPrompt },
+            ...conversationHistory
+        ];
+        
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: messages,
+                temperature: 0.7,
+                max_tokens: 800,
+                top_p: 0.9
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error?.message || `HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const aiMessage = data.choices[0].message.content;
+        
+        conversationHistory.push({ role: "assistant", content: aiMessage });
+        return aiMessage;
+    }
+    
+    function addStatusMessage(text) {
+        const chatArea = document.getElementById('chatArea');
+        const statusDiv = document.createElement('div');
+        statusDiv.className = 'status-msg';
+        statusDiv.textContent = text;
+        chatArea.appendChild(statusDiv);
+        chatArea.scrollTop = chatArea.scrollHeight;
+        
+        // Hapus setelah 5 detik
+        setTimeout(() => {
+            if (statusDiv.parentNode) statusDiv.remove();
+        }, 5000);
+    }
+    
+    function addMessage(role, content) {
+        const chatArea = document.getElementById('chatArea');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role}`;
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        avatar.textContent = role === 'user' ? '👤' : '✅';
+        
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        
+        content.split('\n').forEach(line => {
+            if (line.trim() === '') {
+                bubble.appendChild(document.createElement('br'));
+            } else {
+                const p = document.createElement('p');
+                p.innerHTML = line
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>');
+                bubble.appendChild(p);
+            }
+        });
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(bubble);
+        chatArea.appendChild(messageDiv);
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+    
+    function addTypingIndicator() {
+        const chatArea = document.getElementById('chatArea');
+        const id = 'typing-' + Date.now();
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ai';
+        messageDiv.id = id;
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        avatar.textContent = '✅';
+        
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'bubble typing-indicator';
+        typingDiv.innerHTML = '<span></span><span></span><span></span>';
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(typingDiv);
+        chatArea.appendChild(messageDiv);
+        chatArea.scrollTop = chatArea.scrollHeight;
+        
+        return id;
+    }
+    
+    function removeTypingIndicator(id) {
+        const element = document.getElementById(id);
+        if (element) element.remove();
+    }
+    
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') sendMessage();
+    }
+    
+    document.getElementById('userInput').focus();
+</script>
+
+</body>
+</html>

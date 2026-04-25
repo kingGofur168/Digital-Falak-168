@@ -36,20 +36,11 @@ body{
   padding-bottom:80px;
 }
 
-
 #app {
   width: 100%;
   height: 100%;
-  overflow-y: auto; /* Untuk konten yang bisa di-scroll */
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling di iOS */
-}
-
-/* Untuk menangani safe area di notched devices */
-
-.container{
-  max-width:420px;
-  margin:auto;
-  padding:16px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; 
 }
 
 .card{
@@ -62,6 +53,7 @@ body{
   padding:6px 0;
   border-bottom:1px solid #222;
   font-size:15px;
+  font-weight: 700;
 }
 .sholat-list .row:last-child{
   border-bottom:none;
@@ -77,7 +69,6 @@ body{
   color:var(--accent);
 }
 
-/* Countdown */
 .countdown{
   text-align:center;
   font-size:16px;
@@ -90,12 +81,10 @@ body{
   margin-top:4px;
 }
 
-/* ===== KALENDER ===== */
 .calendar-card{
   margin-top: 15px;
 }
 
-/* Header */
 .calendar-header{
   display:flex;
   align-items:center;
@@ -121,72 +110,67 @@ body{
   font-weight:600;
 }
 
-/* Grid */
 .calendar-grid{
   display:grid;
   grid-template-columns:repeat(7,1fr);
   gap:6px;
 }
 
-/* Nama hari */
 .day-names{
   margin-bottom:6px;
 }
 
 .day-name{
   text-align:center;
-  font-size:12px;
-  font-weight:600;
+  font-weight:700;
   color:var(--muted);
 }
 
-.day-name.jumat{
+.day-name.jumat {
   color:var(--accent);
 }
 
-.day-name.ahad{
+.day-name.ahad {
   color:#f87171;
 }
 
-/* Hari */
-.day{
+.day {
   background:#0b0f14;
   border-radius:10px;
   min-height:58px;
   padding:6px 4px;
-  text-align:center;
   display:flex;
   flex-direction:column;
   justify-content:space-between;
+  text-align: center;
 }
 
-.day.empty{
+.day.empty {
   background:transparent;
   box-shadow:none;
   color: var(--muted);
   justify-content: center;
 }
 
-.day .date{
+.day .date {
   font-size:14px;
   font-weight:700;
 }
 
-.day .hijri{
+.day .hijri {
   font-size:15px;
   color:var(--muted);
 }
-
-.day .pasaran{
+.day .pasaran {
   font-size:10px;
   color:#ffffff;
+  text-align: center;
 }
 
-.day.ahad .date{
+.day.ahad .date {
   color:#f87171;
 }
 
-/* Hari ini */
 .day.today {
   position: relative;
 }
@@ -211,7 +195,7 @@ body{
   opacity:0.4;
   justify-content: center;
 }
-/* Footer */
+
 .footer{
   position:fixed;
   bottom:0;
@@ -244,11 +228,6 @@ body{
   color: var(--primary-dark);
 }
 
-
-/* =========================
-   PANEL PENGATURAN
-========================= */
-
 .settings-container{
   position: fixed;
   inset: 0;
@@ -256,13 +235,10 @@ body{
   color: var(--text, #e5e7eb);
   z-index: 999;
   display: none;
-
-  /* animasi */
   animation: slideUp .7200s ease;
   overflow-y: auto;
 }
 
-/* Animasi muncul */
 @keyframes slideUp{
   from{
     transform: translateY(100%);
@@ -274,34 +250,60 @@ body{
   }
 }
 
-/* =========================
-   HEADER PENGATURAN
-========================= */
-.settings-header{
+.settings-header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: #020617;
-  border-bottom: 1px solid rgba(255,255,255,.08);
+  gap: 1rem;
+  padding: 1rem 0.5rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  background: var(--bg);
 }
 
-.settings-header h2{
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.back-btn{
-  background: none;
+.settings-header .back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
   border: none;
-  color: inherit;
-  font-size: 1.3rem;
+  border-radius: 50%;
+  font-size: 1.25rem;
   cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text);
 }
 
-/* =========================
-   ISI PENGATURAN
-========================= */
+.settings-header .back-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.settings-header .back-btn:active {
+  transform: scale(0.95);
+}
+
+/* Title */
+.settings-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.settings-content {
+  height: calc(10vh - 6px); 
+  overflow-y: auto;
+  
+}
+
 .settings-content{
   padding: 16px;
 }
@@ -328,9 +330,6 @@ body{
   font-size: .9rem;
 }
 
-/* =========================
-   BUTTON & TOGGLE
-========================= */
 .settings-btn{
   background: #0ea5e9;
   color: #020617;
@@ -385,9 +384,6 @@ body{
   transform: translateX(20px);
 }
 
-/* =========================
-   RESPONSIVE HALUS
-========================= */
 @media (min-width: 768px){
   .settings-container{
     max-width: 480px;
@@ -396,17 +392,12 @@ body{
   }
 }
 
-/* ================================
-   APP SETTINGS STYLE
-================================ */
-
 .settings-page{
   max-width:420px;
   margin:auto;
   padding:8px 0 80px;
 }
 
-/* Section */
 .settings-section{
   margin-top:18px;
 }
@@ -420,7 +411,7 @@ body{
 .setting-item{
   color: var(--muted);
 }
-/* Item */
+
 .settings-item{
   display:flex;
   justify-content:space-between;
@@ -451,7 +442,6 @@ body{
   margin-top:2px;
 }
 
-/* Right value */
 .settings-value{
   font-size:13px;
   color:#998;
@@ -465,7 +455,6 @@ body{
   opacity:.6;
 }
 
-/* Toggle look */
 .settings-switch{
   background:#1f2933;
   border-radius:999px;
@@ -473,7 +462,6 @@ body{
   font-size:12px;
 }
 
-/* Danger item */
 .settings-item.danger strong{
   color:var(--danger);
 }
@@ -489,19 +477,12 @@ body{
   transition:.3s;
   z-index:999;
 }
-body.light .sheet{
-  background: #ffffff;
-}
 
 .sheet.show{ bottom:0 }
 
 .sheet-option{
   padding:14px;
   color:#fff;
-}
-body.light .sheet-option{
-  padding:14px;
-  color:#111;
 }
 
 .sheet-option:active{
@@ -514,224 +495,6 @@ body.light .sheet-option{
   margin-bottom:10px;
 }
 
-/* ===============================
-   LIGHT MODE
-   default = DARK
-   aktif saat body.classList.add("light")
-================================ */
-
-body.light {
-  background: #f2f4f7;
-  color: #111;
-}
-
-/* CONTAINER */
-body.light .container {
-  background: #f2f4f7;
-  color: #333333;
-}
-
-/* SETTINGS PAGE */
-body.light .settings-container {
-  background: #f2f4f7;
-}
-
-/* HEADER */
-body.light .settings-header {
-  background: #ffffff;
-  border-bottom: 1px solid #e0e0e0;
-}
-body.light .settings-header h2,
-body.light .settings-header i {
-  color: #333;
-}
-
-/* SECTION */
-body.light .settings-section-title {
-  color: #666;
-}
-
-/* ITEM */
-body.light .settings-item {
-  background: #ffffff;
-  border-bottom: 1px solid #e6e6e6;
-}
-body.light .settings-item.danger strong {
-  color: #c62828;
-}
-
-/* TEXT */
-body.light .settings-text strong {
-  color: #211;
-}
-body.light .settings-text span {
-  color: #111111;
-}
-
-/* VALUE */
-body.light .settings-value,
-body.light .settings-value span,
-body.light .settings-value i {
-  color: #444;
-}
-
-/* SWITCH */
-body.light .settings-switch span {
-  color: #1e88e5;
-}
-
-/* BOTTOM SHEET */
-body.light .sheet-overlay {
-  background: rgba(0,0,0,0.4);
-}
-body.light .sheet-panel {
-  background: #ffffff;
-  color: #111;
-}
-body.light .sheet-header {
-  border-bottom: 1px solid #e0e0e0;
-}
-body.light .sheet-option {
-  border-bottom: 1px solid #eeeeee;
-}
-body.light .sheet-option:hover {
-  background: #f1f3f6;
-}
-
-/* CARD */
-body.light .card {
-  background: #ffffff;
-  color: #111;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-}
-
-/* SHOLAT LIST */
-body.light .sholat-list .row {
-  border-bottom: 1px solid #eaeaea;
-}
-body.light .sholat-list span {
-  color: #555;
-}
-body.light .sholat-list b {
-  color: #666666;
-}
-
-/* COUNTDOWN */
-body.light .countdown {
-  background: #ffffff;
-  color: #4ebc84;
-}
-
-/* CALENDAR */
-body.light .calendar-card {
-  background: #ffffff;
-}
-body.light .calendar-header {
-  border-bottom: 1px solid #e0e0e0;
-}
-body.light .calendar-title {
-  color: #333;
-}
-body.light .day-name {
-  color: #555;
-}
-body.light .day-name.ahad,
-body.light .day-name.jumat {
-  color: #c62828;
-}
-body.light .calendar-days .day {
-  color: #111;
-}
-body.light .calendar-days .day.empty {
-  color: #bbb;
-}
-body.light .calendar-days .day.today {
-  background: #1e88e5;
-  
-}
-
-/* FOOTER */
-body.light .footer {
-  background: #ffffff;
-  border-top: 1px solid #e0e0e0;
-}
-body.light .footer .menu {
-  color: #555;
-}
-body.light .footer .menu.active,
-body.light .footer .menu:hover {
-  color: #1e88e5;
-}
-
-/* ===============================
-   LIGHT MODE – KALENDER (PELENGKAP)
-================================ */
-
-body.light .calendar-grid {
-  background: #ffffff;
-}
-
-/* Grid tanggal */
-body.light .calendar-days {
-  background: #ffffff;
-}
-
-/* Kotak tanggal */
-body.light .calendar-days .day {
-  border: 1px solid #eeeeee;
-  background: #ffffff;
-  transition: background 0.2s;
-}
-
-/* Hover (rasa app) */
-body.light .calendar-days .day:hover {
-  background: #f2f6ff;
-}
-
-/* Hari ini */
-body.light .calendar-days .day.today {
-  background: #ddd;
-}
-
-/* Ahad & Jumat */
-body.light .calendar-days .day.ahad {
-  color: #d32f2f;
-}
-body.light .calendar-days .day.jumat {
-  color: #c62828;
-  font-weight: 600;
-}
-
-/* Tanggal kosong */
-body.light .calendar-days .day.empty {
-  background: #faffff;
-  border-color: #f0f0f0;
-}
-
-/* Hijriyah kecil (jika pakai span) */
-body.light .calendar-days .day .hijri {
-  color: #666;
-}
-
-/* Pasaran / info tambahan */
-body.light .calendar-days .day .pasaran {
-  color: #888;
-}
-
-/* Header bulan */
-body.light .calendar-header button {
-  color: #444;
-}
-body.light .calendar-header button:hover {
-  color: #1e88e5;
-}
-
-/* Nama hari */
-body.light .day-name {
-  background: #fafafa;
-  border-bottom: 1px solid #e6e6e6;
-}
-
 .hisab-container{
   position: fixed;
   inset: 0;
@@ -740,7 +503,6 @@ body.light .day-name {
   display: none;
   overflow-y: auto;
 }
-
 
 .hisab-menu,
 .hisab-sub{
@@ -767,10 +529,6 @@ body.light .day-name {
   opacity:.4;
 }
 
-
-/* ===============================
-   OVERLAY
-================================ */
 .overlay {
   position: fixed;
   inset: 0;
@@ -782,9 +540,6 @@ body.light .day-name {
   display: none;
 }
 
-/* ===============================
-   PANEL HISAB
-================================ */
 .hisab-panel {
   position: fixed;
   bottom: 0;
@@ -799,11 +554,6 @@ body.light .day-name {
   animation: slideUp .7200s ease;
 }
 
-
-
-/* ===============================
-   HEADER
-================================ */
 .hisab-header {
   display: flex;
   align-items: center;
@@ -950,7 +700,6 @@ body.light .day-name {
   }
 }
 
-
 .poinHasilHisab {
   margin-bottom:20px;
   margin-top: 10px;
@@ -979,48 +728,6 @@ body.light .day-name {
   font-size: 14px;
 }
 
-/* Waris Rows */
-.waris-row {
-  display: flex;
-  align-items: center;
-  margin-bottom: 8px;
-  gap: 8px;
-}
-
-.waris-row input[type="checkbox"] {
-  transform: scale(1.2);
-  cursor: pointer;
-}
-
-.waris-row .nama {
-  flex: 1;
-}
-
-/* Tombol + / - */
-.waris-row button {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  border: none;
-  background: #444;
-  color: #fff;
-  font-size: 18px;
-  cursor: pointer;
-}
-
-.waris-row .jumlah {
-  width: 30px;
-  text-align: center;
-}
-
-/* H4 Section Titles */
-h4 {
-  margin: 12px 0 6px;
-  font-size: 16px;
-  border-bottom: 1px solid #555;
-  padding-bottom: 4px;
-}
-
 /* Tombol Proses / Hitung */
 .btn-primary {
   width: 100%;
@@ -1035,7 +742,6 @@ h4 {
   margin-top: 12px;
 }
 
-/* Panel Hasil Waris */
 .hasil-row {
   display: flex;
   flex-direction: column;
@@ -1043,7 +749,6 @@ h4 {
   margin-top: 10px;
 }
 
-/* Scroll jika konten terlalu panjang */
 .hisab-panel::-webkit-scrollbar {
   width: 6px;
 }
@@ -1117,4 +822,142 @@ h4 {
   padding:6px 0;
   border-bottom:1px solid #222;
   font-size:13px;
+}
+
+.lainnya-icons {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 6px 4px;
+}
+
+.lainnya-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    padding: 10px;
+    transition: all 0.3s ease;
+}
+
+.lainnya-icon i {
+    font-size: 40px;
+    color: #333;
+}
+
+.lainnya-icon span {
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+}
+
+.lainnya-icon:hover {
+    transform: translateY(-2px);
+}
+
+.lainnya-icon:hover i {
+    color: #ff3d7f;
+}
+
+.lainnya-icon:hover span {
+    color: #ff3d7f;
+}
+
+/* === LIGHT MODE === */
+body.light {
+  background: var(--light);
+  color: var(--dark);
+}
+
+body.light .card {
+  background: #f8f9fa;
+}
+
+body.light .sholat-list .row {
+  border-bottom-color: var(--border);
+}
+
+body.light .sholat-list .row b {
+  color: var(--dark);
+}
+
+body.light .sholat-list .row.next b {
+  color: var(--primary);
+}
+
+body.light .countdown {
+  color: var(--dark);
+}
+
+body.light .countdown strong {
+  color: var(--primary-dark);
+}
+
+body.light .calendar-header button {
+  color: var(--dark);
+}
+
+body.light .day {
+  background: #f8f9fa;
+}
+
+body.light .day-name {
+  color: #000;
+}
+
+body.light .day-name.jumat {
+  color: #2d6a4f;
+}
+
+body.light .day.empty {
+  background: transparent;
+  color: var(--muted);
+}
+
+body.light .day .hijri {
+  color: var(--muted);
+}
+
+body.light .day .pasaran {
+  color: #6b7280;
+}
+
+body.light .day.today {
+  background: #e6f7ec;
+  border-color: var(--accent);
+}
+
+body.light .day.today::after {
+  background: var(--gold);
+}
+
+body.light .day.today .hijri,
+body.light .day.today .pasaran {
+  color: #000;
+}
+
+body.light .day.prev-month,
+body.light .day.next-month {
+  background: #f1f3f4;
+  opacity: 0.6;
+}
+
+body.light .day.ahad .date {
+  color: #e53e3e;
+}
+
+body.light .day-name.ahad {
+  color: #e53e3e;
+}
+body.light .footer {
+  background: var(--light);
+  border-color: #eee;
+}
+body.light .footer .menu {
+  color: #444444;
+}
+body.light .footer .menu a{
+  color: #444444;
 }

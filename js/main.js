@@ -2301,11 +2301,9 @@ if (btnMenuKalkulator) {
     tabsK.forEach(t => t.classList.remove('active'));
     tabsK[0].classList.add('active');
 
-    contentsK.forEach(c => c.classList.add('hidden'));
-    inputHariTahlil.classList.remove('hidden');
 
-    // pastikan panel hasil tertutup
-    if (panelHasilHariTahlil) panelHasilHariTahlil.classList.add('hidden');
+
+
   };
 }
 /* ===============================
@@ -2467,3 +2465,40 @@ if (btnHitungHari) {
     
   }
 }
+
+/* ===============================
+   ELEMENT UTAMA LAINNYA
+================================ */
+const btnMenuLainnya   = document.getElementById('menu-lainnya'); // footer
+const overlayLainnya   = document.getElementById('lainnyaOverlay');
+const panelLainnya     = document.getElementById('panelLainnya');
+const btnCloseLainnya  = document.getElementById('closeLainnya');
+
+/* ===============================
+   TAB & KONTEN LAINNYA
+================================ */
+const tabsLainnya = document.querySelectorAll('.lainnya-tabs .tab');
+const contentsLainnya = [];
+
+if (btnMenuLainnya) {
+  btnMenuLainnya.onclick = () => {
+    overlayLainnya.classList.remove('hidden');
+    panelLainnya.classList.remove('hidden');
+
+    // reset tab
+    tabsLainnya.forEach(t => t.classList.remove('active'));
+    tabsLainnya[0].classList.add('active');
+
+  };
+}
+
+/* ===============================
+   CLOSE PANEL KALKULATOR
+================================ */
+function closeLainnyaPanel(){
+  overlayLainnya.classList.add('hidden');
+  panelLainnya.classList.add('hidden');
+}
+
+overlayLainnya.onclick  = closeLainnyaPanel;
+closeLainnya.onclick = closeLainnyaPanel;
