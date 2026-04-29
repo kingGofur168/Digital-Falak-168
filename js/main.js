@@ -743,8 +743,7 @@ function initCalendarSettings() {
             
             renderCalendar();
         });
-        
-        statusSpan.style.color = '#4CAF50';
+        statusSpan.style.color = '#E3A127';
         statusSpan.style.fontWeight = '500';
     });
 }
