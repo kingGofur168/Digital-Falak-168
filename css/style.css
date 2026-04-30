@@ -2,13 +2,14 @@
 
 :root{
   --bkg-color-aslK: #E3A127;
-  --clr-gold: #E3A127;
+  --clr-gold: #ff9800;
   --before-aslK: #ff9800;
   --hover-aslK: #e68900;  
-  --bg:#0d1117;/**/
-  --card:#161b22;
+  --bg:#031219;/**/
+  --card:#13181C;
+  --bg-footer:#031219;
   --text:#e6edf3;
-  --muted:#9da7b3;
+  --muted:#9da7bb;
   --accent:#2ea043;
   --primary: #1a5f7a;
   --primary-dark: #0d3b4d;
@@ -83,7 +84,7 @@ body{
   font-size:22px;
   margin-top:4px;
 }
-
+/* === KALENDER === */
 .calendar-card{
   margin-top: 15px;
 }
@@ -113,20 +114,20 @@ body{
   font-weight:600;
 }
 
-.calendar-grid{
+.calendar-grid {
   display:grid;
   grid-template-columns:repeat(7,1fr);
-  gap:6px;
+  gap:2px;
 }
 
 .day-names{
-  margin-bottom:6px;
+  margin-bottom:2px;
 }
 
 .day-name{
   text-align:center;
   font-weight:700;
-  color:var(--muted);
+  color:#ddd;
 }
 
 .day-name.jumat {
@@ -137,37 +138,54 @@ body{
   color:#f87171;
 }
 
-.day {
-  background:#0b0f14;
-  border-radius:10px;
-  min-height:58px;
-  padding:6px 4px;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-  text-align: center;
-}
-
 .day.empty {
+  display:flex;
+  justify-content:center;
+  align-items:center;
   background:transparent;
   box-shadow:none;
   color: var(--muted);
-  justify-content: center;
 }
 
+/* matikan absolute kalau kosong */
+.day.empty .date,
+.day.empty .hijri,
+.day.empty .pasaran {
+  position: static;
+}
+
+.day {
+  position: relative;
+  border-radius:10px;
+  min-height:58px;
+  padding:6px;
+}
+
+/* Tanggal Masehi (besar di kanan atas) */
 .day .date {
-  font-size:14px;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 18px;
   font-weight:700;
 }
 
+/* Tanggal Hijriyah (kecil di kiri atas) */
 .day .hijri {
+  position: absolute;
+  top: 6px;
+  left: 6px;
   font-size:15px;
-  color:var(--muted);
+  color: var(--muted);
+  font-weight:600;
 }
+
 .day .pasaran {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
   font-size:10px;
-  color:#ffffff;
-  text-align: center;
 }
 
 .day.ahad .date {
@@ -181,12 +199,11 @@ body{
 .day.today::after {
   content: '';
   position: absolute;
-  right: 4px;
-  top: 6px;
-  width: 1px;
-  height: 12px;
+  left: 20px;
+  top: 50px;
+  width: 12px;
+  height: 1px;
   background: var(--before-aslK);
-  border-radius: 50%;
 }
 
 .day.today .hijri,
@@ -204,7 +221,7 @@ body{
   bottom:0;
   left:0;
   right:0;
-  background:var(--card);
+  background:var(--bg-footer);
   display:flex;
   justify-content:space-around;
   padding:10px 0;
@@ -234,7 +251,7 @@ body{
 .settings-container{
   position: fixed;
   inset: 0;
-  background: var(--bg, #0f172a);
+  background: var(--bg);
   color: var(--text, #e5e7eb);
   z-index: 999;
   display: none;
@@ -502,7 +519,7 @@ body{
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: var(--bg, #0f1115);
+  background: var(--bg);
   display: none;
   overflow-y: auto;
 }
@@ -548,7 +565,7 @@ body{
   bottom: 0;
   width: 100%;
   max-width: 420px;
-  background: var(--card);
+  background: var(--bg-footer);
   border-radius: 18px 18px 0 0;
   z-index: 1001;
   padding-bottom: 16px;
@@ -563,6 +580,13 @@ body{
   justify-content: space-between;
   padding: 14px 16px;
   border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.hisab-header .back-btn {
+  color: var(--text);
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
 }
 
 .hisab-header h3 {
@@ -597,8 +621,8 @@ body{
 }
 
 .hisab-tabs .tab.active {
-  color: #ff3d7f;
-  border-bottom: 2px solid #ff3d7f;
+  color: var(--clr-gold);
+  border-bottom: 2px solid var(--clr-gold);
 }
 .hisab-content {
   padding: 14px 16px;
@@ -634,7 +658,7 @@ body{
 .field input:focus,
 .field select:focus {
   outline: none;
-  border-bottom-color: #ff3d7f;
+  border-bottom-color: var(--clr-gold);
 }
 
 .btn-process {
@@ -788,8 +812,8 @@ body{
 }
 
 .kalkulator-tabs .tab.active {
-  color: #ff3d7f;
-  border-bottom: 2px solid #ff3d7f;
+  color: var(--clr-gold);
+  border-bottom: 2px solid var(--clr-gold);
 }
 
 .tahlil-table {
@@ -861,11 +885,11 @@ body{
 }
 
 .lainnya-icon:hover i {
-    color: #ff3d7f;
+    color: var(--clr-gold);
 }
 
 .lainnya-icon:hover span {
-    color: #ff3d7f;
+    color: var(--clr-gold);
 }
 
 /* === LIGHT MODE === */

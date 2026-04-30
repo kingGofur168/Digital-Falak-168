@@ -16,6 +16,7 @@
     <title>Digital Falak 168 - DF 168</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/fbt.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -457,30 +458,21 @@
 <div class="lainnya-tabs">
   <div class="lainnya-methods">
     <div class="lainnya-icons">
-       <div class="lainnya-icon" title="Download">
+       <div class="lainnya-icon" title="Download" id="btnMenuDownload">
             <i class="fa-solid fa-download"></i>
             <span>Download</span>
       </div>
-      <div class="lainnya-icon" title="Belajar ngoding">
+      <!--
+      <div class="lainnya-icon" title="Belajar ngoding" id="btnMenuNgoding">
             <i class="fa-solid fa-code"></i>
             <span>Ngoding</span>
       </div>
-      <div class="lainnya-icon" title="Data Lokasi">
+      -->
+      <div class="lainnya-icon" title="Data Lokasi" id="btnMenuLokasi">
             <i class="fa-solid fa-location-dot"></i>
             <span>Lokasi</span>
       </div>
-      <div class="lainnya-icon" title="Waris">
-            <i class="fa-solid fa-scale-balanced"></i>
-            <span>Waris</span>
-      </div>
-      <div class="lainnya-icon" title="Waris">
-            <i class="fa-solid fa-scale-balanced"></i>
-            <span>Waris</span>
-      </div>
-      <div class="lainnya-icon" title="">
-            <i class="fa-solid fa-"></i>
-            <span></span>
-      </div>
+    </div>
     </div>
   </div>
 </div>
@@ -559,6 +551,32 @@
     </div>
 </div>
 
+<!-- Menu Lainnya - Download -->
+<div id="panelMenuDownload" class="hisab-panel hidden">
+    <div class="hisab-header">
+        <button id="btnBackToDownload" class="back-btn">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+        <h3>Download</h3>
+    </div>
+    <div class="card hisab-content">
+        <div class="hasil-row" id="listDownload"></div>
+    </div>
+</div>
+<!-- Menu Lainnya - Download -->
+<div id="panelMenuLokasi" class="hisab-panel hidden">
+    <div class="hisab-header">
+        <button id="btnBackToLokasi" class="back-btn">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+        <h3>Lokasi</h3>
+    </div>
+    <div class="card hisab-content">
+        <div class="hasil-row" id="listLokasi"></div>
+    </div>
+</div>
+
+
 <!-- Footer Menu -->
 <div class="footer">
     <div class="menu" id="menuPengaturan">
@@ -576,7 +594,7 @@
         <i class="bi bi-calculator-fill"></i>
         <br>Kalkulator
     </div>    
-    <div class="menu" id="menu-lainnya"><i class="bi bi-grid-fill"></i>
+    <div class="menu" id="btnMenuLainnya"><i class="bi bi-grid-fill"></i>
         <br>Lainnya
     </div>
 
