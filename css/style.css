@@ -170,12 +170,11 @@ body{
   font-weight:700;
 }
 
-/* Tanggal Hijriyah (kecil di kiri atas) */
 .day .hijri {
   position: absolute;
   top: 6px;
   left: 6px;
-  font-size:15px;
+  font-size: 13px;
   color: var(--muted);
   font-weight:600;
 }
