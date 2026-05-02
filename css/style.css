@@ -120,14 +120,14 @@ body{
   gap:2px;
 }
 
-.day-names{
-  margin-bottom:2px;
+.day-names {
+  margin-bottom: 2px;
 }
 
-.day-name{
-  text-align:center;
-  font-weight:700;
-  color:#ddd;
+.day-name {
+  text-align: center;
+  font-weight: 600;
+  color: #ddd;
 }
 
 .day-name.jumat {
@@ -166,14 +166,14 @@ body{
   position: absolute;
   top: 6px;
   right: 6px;
-  font-size: 18px;
-  font-weight:700;
+  font-size: 16px;
+  font-weight:600;
 }
 
 .day .hijri {
   position: absolute;
   top: 6px;
-  left: 6px;
+  left: 13px;
   font-size: 13px;
   color: var(--muted);
   font-weight:600;
