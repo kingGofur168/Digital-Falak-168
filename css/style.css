@@ -1,7 +1,8 @@
 @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css");
 
-:root{
+:root {
   --bkg-color-aslK: #E3A127;
+  --clr-aslK: #E3A127;
   --clr-gold: #ff9800;
   --before-aslK: #ff9800;
   --hover-aslK: #e68900;  
@@ -13,15 +14,17 @@
   --accent:#2ea043;
   --primary: #1a5f7a;
   --primary-dark: #0d3b4d;
-  --light: #f8f9fa;
   --dark: #1a202c;
   --paper: #fefcf0;
-  --border: #e2e8f0;
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   --transition: all 0.3s ease;
+  --clr-aslB: #007bff;
+  --clr-poek: #333333;
+  --light: #f7f7f7;
+  --border: #999999;
 }
 
-*{
+* {
   box-sizing:border-box;
   margin:0;
   padding:0;
@@ -34,7 +37,7 @@ html, body {
   overscroll-behavior: none;
   -webkit-touch-callout: none;
 }
-body{
+body {
   background:var(--bg);
   color:var(--text);
   padding-bottom:80px;
@@ -47,7 +50,7 @@ body{
   -webkit-overflow-scrolling: touch; 
 }
 
-.card{
+.card {
   padding:5px;
 }
 
@@ -55,7 +58,7 @@ body{
   display:flex;
   justify-content:space-between;
   padding:6px 0;
-  border-bottom:1px solid #222;
+  border-bottom:1px solid rgba(255,255,255,0.1);
   font-size:15px;
   font-weight: 700;
 }
@@ -73,30 +76,30 @@ body{
   color:var(--accent);
 }
 
-.countdown{
+.countdown {
   text-align:center;
   font-size:16px;
   padding: 16px;
 }
 
-.countdown strong{
+.countdown strong {
   display:block;
   font-size:22px;
   margin-top:4px;
 }
 /* === KALENDER === */
-.calendar-card{
+.calendar-card {
   margin-top: 15px;
 }
 
-.calendar-header{
+.calendar-header {
   display:flex;
   align-items:center;
   justify-content:space-between;
   margin-bottom:10px;
 }
 
-.calendar-header button{
+.calendar-header button {
   background:none;
   border:none;
   color:var(--text);
@@ -105,12 +108,12 @@ body{
   padding:4px 10px;
 }
 
-.calendar-header button:active{
+.calendar-header button:active {
   transform:scale(.9);
 }
 
-.calendar-title{
-  font-size:15px;
+.calendar-title {
+  font-size: 15px;
   font-weight:600;
 }
 
@@ -156,9 +159,9 @@ body{
 
 .day {
   position: relative;
-  border-radius:10px;
-  min-height:58px;
-  padding:6px;
+  border-radius: 10px;
+  min-height: 58px;
+  padding: 6px;
 }
 
 /* Tanggal Masehi (besar di kanan atas) */
@@ -166,14 +169,13 @@ body{
   position: absolute;
   top: 6px;
   right: 6px;
-  font-size: 16px;
-  font-weight:600;
+  font-size: 17px;
+  font-weight: 600;
 }
 
 .day .hijri {
   position: absolute;
-  top: 6px;
-  left: 13px;
+  left: 10px;
   font-size: 13px;
   color: var(--muted);
   font-weight:600;
@@ -184,7 +186,9 @@ body{
   bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
-  font-size:10px;
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 450;
 }
 
 .day.ahad .date {
@@ -192,17 +196,7 @@ body{
 }
 
 .day.today {
-  position: relative;
-}
-
-.day.today::after {
-  content: '';
-  position: absolute;
-  left: 20px;
-  top: 50px;
-  width: 12px;
-  height: 1px;
-  background: var(--before-aslK);
+  border: 1px solid rgba(255,255,255,0.1);
 }
 
 .day.today .hijri,
@@ -215,7 +209,7 @@ body{
   justify-content: center;
 }
 
-.footer{
+.footer {
   position:fixed;
   bottom:0;
   left:0;
@@ -224,18 +218,18 @@ body{
   display:flex;
   justify-content:space-around;
   padding:10px 0;
-  border-top:1px solid #222;
+  border-top:1px solid rgba(255,255,255,0.1);
 }
 
-.footer .menu{
+.footer .menu {
   text-align:center;
   font-size:12px;
   color:var(--muted);
 }
-.footer .menu a{
+.footer .menu a {
   color: var(--muted);
 }
-.footer .menu i{
+.footer .menu i {
   font-size:25px;
 }
 .footer .menu.active,
@@ -247,18 +241,20 @@ body{
   color: var(--primary-dark);
 }
 
-.settings-container{
+.settings-container {
   position: fixed;
   inset: 0;
   background: var(--bg);
-  color: var(--text, #e5e7eb);
+  color: var(--text);
   z-index: 999;
   display: none;
   animation: slideUp .7200s ease;
   overflow-y: auto;
 }
-
-@keyframes slideUp{
+body.light .settings-container {
+  background: var(--light);
+}
+@keyframes slideUp {
   from{
     transform: translateY(100%);
     opacity: 0;
@@ -281,11 +277,14 @@ body{
   padding: 1rem 0.5rem;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
   background: var(--bg);
 }
-
+body.light .settings-header {
+  background: var(--light);
+  color: var(--clr-poek);
+}
 .settings-header .back-btn {
   display: flex;
   align-items: center;
@@ -300,7 +299,9 @@ body{
   transition: all 0.2s ease;
   color: var(--text);
 }
-
+body.light .settings-header .back-btn {
+  color: var(--clr-poek);
+}
 .settings-header .back-btn:hover {
   background: rgba(0, 0, 0, 0.05);
 }
@@ -317,29 +318,12 @@ body{
   letter-spacing: -0.3px;
 }
 
-.settings-content {
-  height: calc(10vh - 6px); 
-  overflow-y: auto;
-  
+.settings-section {
+  margin-bottom: 0px;
 }
 
-.settings-content{
-  padding: 16px;
-}
-
-.settings-section{
-  margin-bottom: 20px;
-}
-
-.settings-section h3{
-  font-size: .9rem;
-  color: #38bdf8;
-  margin-bottom: 8px;
-  font-weight: 600;
-}
-
-.settings-item{
-  background: #020617;
+.settings-item {
+  background: var(--card);
   border-radius: 12px;
   padding: 12px 14px;
   display: flex;
@@ -348,172 +332,121 @@ body{
   margin-bottom: 10px;
   font-size: .9rem;
 }
-
-.settings-btn{
-  background: #0ea5e9;
-  color: #020617;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: .75rem;
-  cursor: pointer;
+body.light .settings-item {
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .02);
+}
+.settings-item:last-child {
+  border-bottom:none;
 }
 
-.settings-btn.secondary{
-  background: #1e293b;
-  color: #e5e7eb;
-}
-
-/* Toggle switch */
-.toggle{
-  position: relative;
-  width: 42px;
-  height: 22px;
-}
-
-.toggle input{
-  display: none;
-}
-
-.toggle span{
-  position: absolute;
-  inset: 0;
-  background: #1e293b;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.toggle span::before{
-  content: '';
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  left: 2px;
-  top: 2px;
-  background: #e5e7eb;
-  border-radius: 50%;
-  transition: .25s;
-}
-
-.toggle input:checked + span{
-  background: #0ea5e9;
-}
-
-.toggle input:checked + span::before{
-  transform: translateX(20px);
-}
-
-@media (min-width: 768px){
-  .settings-container{
-    max-width: 480px;
-    margin: auto;
-    border-radius: 16px;
-  }
-}
-
-.settings-page{
-  max-width:420px;
-  margin:auto;
-  padding:8px 0 80px;
-}
-
-.settings-section{
+.settings-section {
   margin-top:18px;
 }
 
-.settings-section-title{
+.settings-section-title {
   padding:6px 16px;
   font-size:12px;
   font-weight:600;
   color:var(--clr-gold);
 }
-.setting-item{
-  color: var(--muted);
+body.light .settings-section-title {
+  color:var(--clr-aslB);
 }
 
-.settings-item{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:14px 16px;
-  background:var(--card);
-  border-bottom:1px solid #222;
-}
-
-.settings-item:last-child{
-  border-bottom:none;
-}
-
-/* Left text */
-.settings-text{
+.settings-text {
   display:flex;
   flex-direction:column;
 }
 
-.settings-text strong{
+.settings-text strong {
   font-size:14px;
   font-weight:500;
 }
-
+body.light .settings-text strong {
+  color: var(--clr-poek);
+}
 .settings-text span {
   font-size:12px;
   color:var(--muted);
   margin-top:2px;
 }
-
+body.light .settings-text span {
+  color: #444444;
+}
 .settings-value {
   font-size:13px;
-  color: #998;
+  color: var(--clr-aslK);
   display:flex;
   align-items:center;
   gap:6px;
 }
-
+body.light .settings-value {
+  color: var(--clr-aslB);
+}
 .settings-value i {
   font-size:14px;
   opacity:.6;
 }
 
 .settings-switch {
-  background:#1f2933;
+  background: #1f2933;
   border-radius:999px;
   padding:4px 10px;
   font-size:12px;
 }
-
-.settings-item.danger strong {
-  color:var(--danger);
+body.light .settings-switch {
+  background: #eaeaea;
 }
-
 .sheet {
-  position:fixed;
-  bottom:-100%;
-  left:0;
+  position: fixed;
+  bottom: -100%;
+  left: 0;
   width:100%;
-  background:#1f2933;
-  border-radius:16px 16px 0 0;
-  padding:16px;
-  transition:.3s;
-  z-index:999;
+  background: var(--bg);
+  border-radius: 4px 10px;
+  padding: 16px;
+  transition: .3s;
+  z-index: 999;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
-
+body.light .sheet {
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+  background: var(--light);
+}
 .sheet.show { bottom:0 }
-
-.sheet-option{
+.sheet-option {
   padding:14px;
   color:#fff;
+}
+body.light .sheet-option {
+  color:#111;
 }
 
 .sheet-option:active {
   background:#1e1e1e;
 }
 
-.sheet-header{
-  text-align:center;
-  font-weight:bold;
-  margin-bottom:10px;
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  font-weight: 600;
 }
-
+body.light .sheet-header {
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+.sheet-header .sheet-close {
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+}
+body.light .sheet-header .sheet-close {
+  color: #111;
+}
 .hisab-container{
   position: fixed;
   inset: 0;
@@ -788,7 +721,6 @@ body{
   background: #1e1e1e;
 }
 
-/* Show panel and overlay */
 .hisab-panel.show,
 .overlay.show {
   display: block;
@@ -842,7 +774,7 @@ body{
   margin-bottom: 10px;
 }
 
-.hisab-list .row{
+.hisab-list .row {
   display:flex;
   justify-content:space-between;
   padding:6px 0;
@@ -891,18 +823,88 @@ body{
     color: var(--clr-gold);
 }
 
+.download-file {
+  background: transparent;
+}
+
+.download-file h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.download-file h4 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-top: 30px;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.download-file h4::before {
+  content: "★";
+  color: var(--clr-aslK);
+  font-size: 1.2rem;
+  margin-right: 5px;
+}
+.dark-mode .download-file h4::before {
+  color: var(--clr-aslK);
+}
+
+.download-file ul {
+  list-style: none;
+  padding: 0;
+}
+
+.download-file ul li {
+  margin-bottom: 10px;
+  padding-left: 25px;
+  position: relative;
+  font-size: 0.95rem;
+}
+
+.download-file ul li::before {
+  content: "›";
+  position: absolute;
+  left: 5px;
+  color: var(--clr-aslK);
+  font-weight: bold;
+}
+
+.download-file a {
+  color: var(--before-aslK);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.download-file a:hover {
+  color: var(--hover-aslB);
+  text-decoration: underline;
+}
+
+.download-file p.fw-bold {
+  padding: 12px 16px;
+  border-left: 4px solid var(--clr-aslK);
+  background: rgba(0, 123, 255, 0.05);
+  border-radius: 5px;
+  font-size: 1rem;
+  margin-top: 25px;
+}
+
 /* === LIGHT MODE === */
 body.light {
   background: var(--light);
-  color: var(--dark);
+  color: var(--clr-poek);
 }
 
 body.light .card {
-  background: #f8f9fa;
+  background: var(--light);
 }
 
 body.light .sholat-list .row {
-  border-bottom-color: var(--border);
+  border-bottom-color: #e1e1e1;
 }
 
 body.light .sholat-list .row b {
@@ -939,24 +941,16 @@ body.light .day-name.jumat {
 
 body.light .day.empty {
   background: transparent;
-  color: var(--muted);
+  color: #aaa;
 }
 
-body.light .day .hijri {
-  color: var(--muted);
-}
-
+body.light .day .hijri,
 body.light .day .pasaran {
-  color: #6b7280;
+  color: var(--clr-poek);
 }
 
 body.light .day.today {
-  background: #e6f7ec;
-  border-color: var(--accent);
-}
-
-body.light .day.today::after {
-  background: var(--gold);
+  border: 1px solid #ddd;
 }
 
 body.light .day.today .hijri,
@@ -977,6 +971,7 @@ body.light .day.ahad .date {
 body.light .day-name.ahad {
   color: #e53e3e;
 }
+
 body.light .footer {
   background: var(--light);
   border-color: #eee;
@@ -986,4 +981,209 @@ body.light .footer .menu {
 }
 body.light .footer .menu a{
   color: #444444;
+}
+
+.islam-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+.hAgungIslam-label {
+    color: #66bb6a;
+}
+
+body.light .hAgungIslam-label {
+    color: #2d6a4f; 
+}
+
+.hAgungIslam-label-value {
+    color: #e0e0e0;
+    max-width: 200px;
+    text-align: right;
+}
+
+/* Jika tetap ingin support dark mode */
+@media (prefers-color-scheme: dark) {
+    .islam-value {
+        color: #e0e0e0;
+    }
+}
+
+.liburRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+#customDateModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.custom-modal {
+    background: #1e1e1e;
+    border-radius: 8px;
+    padding: 0;
+    max-width: 360px;
+    width: 90%;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow: hidden;
+    border: 1px solid #333;
+}
+body.light .custom-modal {
+  background: #f2f2f2;
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.1)
+  border: 1px solid #333;
+}
+/* Modal Content */
+.modal-content {
+    padding: 20px;
+}
+
+/* Masehi Date */
+.modal-masehi-date {
+    font-size: 18px;
+    font-weight: 500;
+    color: #ffffff;
+    margin-bottom: 4px;
+}
+body.light .modal-masehi-date {
+    color: var(--clr-poek);
+}
+body.light .modal-hijri-date {
+    color: #363636;
+}
+
+.modal-hijri-date {
+    font-size: 14px;
+    color: #9e9e9e;
+    margin-bottom: 16px;
+}
+
+.modal-divider {
+    height: 1px;
+    background: #333;
+    margin: 12px 0;
+}
+body.light .modal-divider {
+    background: #999;
+}
+
+.modal-pasaran-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.modal-pasaran-label {
+    color: #9e9e9e;
+}
+body.light .modal-pasaran-label {
+    color: #303030;
+}
+
+.modal-pasaran-value {
+    color: #e0e0e0;
+    font-weight: 500;
+}
+body.light .modal-pasaran-value {
+    color: var(--clr-poek);
+}
+
+/* Libur Row */
+.modal-libur-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.modal-libur-label {
+    color: #ef5350;
+}
+body.light .modal-libur-label {
+    color: #d32f2f;
+}
+
+.modal-libur-value {
+    color: #e0e0e0;
+    max-width: 200px;
+    text-align: right;
+}
+body.light .modal-libur-value {
+    color: var(--clr-poek);
+}
+
+/* Close Button */
+.modal-close-btn {
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    color: #eaeaea;
+    border: none;
+    border-top: 1px solid #333;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+body.light .modal-close-btn {
+    color: #515151;
+    border-top: 1px solid #999;
+}
+
+.modal-close-btn:hover {
+    background: #2a2a2a;
+    color: #e0e0e0;
+}
+
+body.light .modal-close-btn:hover {
+    background: #cccccc;
+    color: #616161;
+}
+
+.day.national-holiday .date {
+    color: #f87171 !important;
+}
+body.light .day.national-holiday .date {
+    color: #d32f2f !important;
+}
+
+.day.islamic-holiday .date {
+    color: var(--accent) !important;
+}
+body.light .day.islamic-holiday .date {
+    color: #2d6a4f !important;
+}
+
+.day.jumat .hijri {
+    color: var(--accent) !important;
+}
+body.light .day.jumat .hijri {
+    color: #2d6a4f !important;
+}
+
+/* Hover effect */
+.day:hover {
+    opacity: 0.8;
+    transform: scale(0.98);
+    transition: all 0.15s ease;
+}
+
+.day:hover .date {
+    font-weight: bold;
 }

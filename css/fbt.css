@@ -4,13 +4,11 @@
         --text-secondary: #a0a0b0;
         --kuning: #ff8c42;
         --kuning-glow: rgba(255, 140, 66, 0.3);
-        --border: #2a2a35;
         --code-bg: #1a1a24;
         --mutedd: #6b6b80;
     }
 
     .feature-unavailable {
-        font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
         display: flex;
         align-items: center;
         justify-content: center;

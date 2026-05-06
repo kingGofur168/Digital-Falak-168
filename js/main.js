@@ -434,33 +434,9 @@ function createCustomModal() {
     
     const overlay = document.createElement('div');
     overlay.id = 'customDateModal';
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-        opacity: 0;
-        transition: opacity 0.2s ease;
-    `;
     
     const modal = document.createElement('div');
-    modal.style.cssText = `
-        background: #1e1e1e;
-        border-radius: 8px;
-        padding: 0;
-        max-width: 360px;
-        width: 90%;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        overflow: hidden;
-        border: 1px solid #333;
-    `;
+    modal.className = 'custom-modal';
     
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
@@ -486,7 +462,7 @@ function showDateInfo(date) {
     
     const { overlay, modal } = createCustomModal();
     
-    // Garis aksen atas
+    // Garis aksen atas (warna dinamis)
     let accentColor = '#757575';
     if (holidays.national) accentColor = '#ef5350';
     else if (holidays.islamic) accentColor = '#66bb6a';
@@ -502,46 +478,28 @@ function showDateInfo(date) {
     
     // Konten
     const content = document.createElement('div');
-    content.style.padding = '20px';
+    content.className = 'modal-content';
     
     // Tanggal Masehi
     const masehiDate = document.createElement('div');
-    masehiDate.style.cssText = `
-        font-size: 18px;
-        font-weight: 500;
-        color: #ffffff;
-        margin-bottom: 4px;
-    `;
+    masehiDate.className = 'modal-masehi-date';
     masehiDate.textContent = `${dayName}, ${day} ${month} ${year}`;
     
     // Tanggal Hijriyah
     const hijriDate = document.createElement('div');
-    hijriDate.style.cssText = `
-        font-size: 14px;
-        color: #9e9e9e;
-        margin-bottom: 16px;
-    `;
+    hijriDate.className = 'modal-hijri-date';
     hijriDate.textContent = `${h.day} ${hijriMonthName} ${h.year}`;
     
     // Garis pembatas
     const divider = document.createElement('div');
-    divider.style.cssText = `
-        height: 1px;
-        background: #333;
-        margin: 12px 0;
-    `;
+    divider.className = 'modal-divider';
     
     // Pasaran
     const pasaranRow = document.createElement('div');
-    pasaranRow.style.cssText = `
-        display: flex;
-        justify-content: space-between;
-        font-size: 14px;
-        margin-bottom: 8px;
-    `;
+    pasaranRow.className = 'modal-pasaran-row';
     pasaranRow.innerHTML = `
-        <span style="color: #9e9e9e;">Pasaran</span>
-        <span style="color: #e0e0e0; font-weight: 500;">${pasaranName}</span>
+        <span class="modal-pasaran-label">Pasaran</span>
+        <span class="modal-pasaran-value">${pasaranName}</span>
     `;
     
     content.appendChild(masehiDate);
@@ -552,30 +510,20 @@ function showDateInfo(date) {
     // Info Libur
     if (holidays.national) {
         const liburRow = document.createElement('div');
-        liburRow.style.cssText = `
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            margin-top: 8px;
-        `;
+        liburRow.className = 'modal-libur-row';
         liburRow.innerHTML = `
-            <span style="color: #ef5350;">Libur Nasional</span>
-            <span style="color: #e0e0e0; max-width: 200px; text-align: right;">${holidays.national}</span>
+            <span class="modal-libur-label">Libur Nasional</span>
+            <span class="modal-libur-value">${holidays.national}</span>
         `;
         content.appendChild(liburRow);
     }
     
     if (holidays.islamic && !holidays.national) {
         const islamRow = document.createElement('div');
-        islamRow.style.cssText = `
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            margin-top: 8px;
-        `;
+        islamRow.className = 'islam-row';
         islamRow.innerHTML = `
-            <span style="color: #66bb6a;">Hari Agung Islam</span>
-            <span style="color: #e0e0e0; max-width: 200px; text-align: right;">${holidays.islamic}</span>
+            <span class="hAgungIslam-label">Hari Agung Islam</span>
+            <span class="hAgungIslam-value">${holidays.islamic}</span>
         `;
         content.appendChild(islamRow);
     }
@@ -585,27 +533,7 @@ function showDateInfo(date) {
     // Tombol Tutup
     const closeBtn = document.createElement('button');
     closeBtn.textContent = 'Tutup';
-    closeBtn.style.cssText = `
-        width: 100%;
-        padding: 14px;
-        background: transparent;
-        color: #9e9e9e;
-        border: none;
-        border-top: 1px solid #333;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.15s;
-    `;
-    
-    closeBtn.onmouseover = () => {
-        closeBtn.style.background = '#2a2a2a';
-        closeBtn.style.color = '#e0e0e0';
-    };
-    closeBtn.onmouseout = () => {
-        closeBtn.style.background = 'transparent';
-        closeBtn.style.color = '#9e9e9e';
-    };
+    closeBtn.className = 'modal-close-btn';
     closeBtn.onclick = () => {
         overlay.style.opacity = '0';
         setTimeout(() => overlay.remove(), 200);
@@ -749,24 +677,11 @@ function initCalendarSettings() {
 }
 
 // ========== CSS MINIMAL ==========
-function addHolidayStyles() {
-    const style = document.createElement('style');
-    style.textContent = `
-        .day {
-            cursor: pointer;
-        }
-        .day.national-holiday .date {
-            color: #f87171 !important;
-        }
-        .day.islamic-holiday .date {
-            color: #4caf50 !important;
-        }
-        .day.jumat .hijri {
-            color: #4caf50 !important;
-        }
-    `;
-    document.head.appendChild(style);
-}
+// Cukup panggil saja, tanpa perlu mendefinisikan style di JS
+document.addEventListener('DOMContentLoaded', () => {
+    // addHolidayStyles() - TIDAK PERLU LAGI jika sudah pakai file CSS terpisah
+    initCalendarSettings();
+});
 
 // ========== INISIALISASI ==========
 document.addEventListener('DOMContentLoaded', () => {
@@ -2300,9 +2215,6 @@ if (btnMenuKalkulator) {
     tabsK.forEach(t => t.classList.remove('active'));
     tabsK[0].classList.add('active');
 
-
-
-
   };
 }
 /* ===============================
@@ -2498,30 +2410,49 @@ if (btnMenuDownload) {
     panelLainnya.classList.add("hidden");
     panelMenuDownload.classList.remove("hidden");
 listDownload.innerHTML = `
-<div class="feature-unavailable">
-    <!-- Partikel -->
-    <div class="particles" id="particles"></div>
-
-    <!-- Container -->
-    <div class="feature-container">
-    <!-- Code Snippet -->
-        <div class="code-snippet" id="codeSnippet">
-<span class="comment">// Status fitur</span>
-<span class="keyword">const</span> <span class="property">featureStatus</span> = {
-<span class="property">  available</span>: <span class="keyword">false</span>,
-<span class="property">  estimatedRelease</span>: <span class="string">"Segera"</span>,
-<span class="property">  message</span>: <span class="string">"Dalam pengerjaan"</span>
-};
-<span class="function">checkFeature</span>() → <span class="string">"403 - Belum Tersedia"</span>
-            <span class="copy-indicator" id="copyIndicator">Tersalin!</span>
-        </div>
-
-        <!-- Footer -->
-        <p class="footer-note">
-            Kode status: <span>403 • Fitur Belum Tersedia.
-        </p>
-
-    </div>
+<div class="download-file >
+  <div class="">
+    <h4>Aplikasi</h4>
+    <ul>
+      <li>
+        <a href="" target="_blank">Digital Falak 168</a> — Mempelajari hisab.
+      </li>
+      <li>
+        <a href="" target="_blank">Digital Falak 168</a> — Mempelajari hisab.
+      </li>
+      <li>
+        <a href="" target="_blank">Digital Falak 168</a> — Mempelajari hisab.
+      </li>
+    </ul>
+  </div>
+  <div class="download-file">
+    <h4>PDF</h4>
+    <ul>
+      <li>
+        <a href="" target="_blank">Digital Falak 168</a> — Mempelajari hisab.
+      </li>
+      <li>
+        <a href="" target="_blank">Digital Falak 168</a> — Mempelajari hisab.
+      </li>
+      <li>
+        <a href="" target="_blank">Digital Falak 168</a> — Mempelajari hisab.
+      </li>
+    </ul>
+  </div>
+  <div class="download-file">
+    <h4>Excel</h4>
+    <ul>
+      <li>
+        <a href="" target="_blank">Digital Falak 168</a> — Mempelajari hisab.
+      </li>
+      <li>
+        <a href="" target="_blank">Digital Falak 168</a> — Mempelajari hisab.
+      </li>
+      <li>
+        <a href="" target="_blank">Digital Falak 168</a> — Mempelajari hisab.
+      </li>
+    </ul>
+  </div>
 </div>
 
 `;
