@@ -656,30 +656,43 @@ function initCalendarSettings() {
         
         if (!settingText || !statusSpan) return;
         
-        item.style.cursor = 'pointer';
+        // Tambahkan class untuk styling
+        statusSpan.className = 'settings-status';
+        
+        // Set initial status color based on settings
+        if (settingText.textContent.includes('Hari Agung Islam')) {
+            statusSpan.textContent = calendarSettings.islamicHoliday ? 'Aktif' : 'Nonaktif';
+            statusSpan.classList.add(calendarSettings.islamicHoliday ? 'active' : 'inactive');
+        } else if (settingText.textContent.includes('Hari Libur Nasional')) {
+            statusSpan.textContent = calendarSettings.nationalHoliday ? 'Aktif' : 'Nonaktif';
+            statusSpan.classList.add(calendarSettings.nationalHoliday ? 'active' : 'inactive');
+        }
         
         item.addEventListener('click', () => {
             if (settingText.textContent.includes('Hari Agung Islam')) {
                 calendarSettings.islamicHoliday = !calendarSettings.islamicHoliday;
                 statusSpan.textContent = calendarSettings.islamicHoliday ? 'Aktif' : 'Nonaktif';
-                statusSpan.style.color = calendarSettings.islamicHoliday ? '#4CAF50' : '#999';
+                
+                // Update class
+                statusSpan.classList.remove('active', 'inactive');
+                statusSpan.classList.add(calendarSettings.islamicHoliday ? 'active' : 'inactive');
+                
             } else if (settingText.textContent.includes('Hari Libur Nasional')) {
                 calendarSettings.nationalHoliday = !calendarSettings.nationalHoliday;
                 statusSpan.textContent = calendarSettings.nationalHoliday ? 'Aktif' : 'Nonaktif';
-                statusSpan.style.color = calendarSettings.nationalHoliday ? '#4CAF50' : '#999';
+                
+                // Update class
+                statusSpan.classList.remove('active', 'inactive');
+                statusSpan.classList.add(calendarSettings.nationalHoliday ? 'active' : 'inactive');
             }
             
             renderCalendar();
         });
-        statusSpan.style.color = '#E3A127';
-        statusSpan.style.fontWeight = '500';
     });
 }
 
 // ========== CSS MINIMAL ==========
-// Cukup panggil saja, tanpa perlu mendefinisikan style di JS
 document.addEventListener('DOMContentLoaded', () => {
-    // addHolidayStyles() - TIDAK PERLU LAGI jika sudah pakai file CSS terpisah
     initCalendarSettings();
 });
 
@@ -688,9 +701,6 @@ document.addEventListener('DOMContentLoaded', () => {
     addHolidayStyles();
     initCalendarSettings();
 });
-
-
-
 // ==========================================
 // INITIALIZATION - SEMUA DALAM SATU EVENT LISTENER
 // ==========================================
@@ -2415,10 +2425,10 @@ listDownload.innerHTML = `
     <h4>Aplikasi</h4>
     <ul>
       <li>
-        <a href="" target="_blank">Digital Falak 168</a> — Mempelajari hisab.
+        <a href="" target="_blank">Digital Falak 168</a> — Falak 168 memudahkan perhitungan waktu sholat dan ijtima dengan metode hisab pendekatan yang sederhana dan efisien. * Karya Santri
       </li>
       <li>
-        <a href="" target="_blank">Digital Falak 168</a> — Mempelajari hisab.
+        <a href="" target="_blank">F169</a> — Mempelajari hisab.
       </li>
       <li>
         <a href="" target="_blank">Digital Falak 168</a> — Mempelajari hisab.
