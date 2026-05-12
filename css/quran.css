@@ -4,10 +4,12 @@
   margin:0;
   padding:0;
   box-sizing:border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 body{
-  background:#0f172a;
+  background:#031219;
   color:white;
   font-family:sans-serif;
 }
@@ -19,7 +21,7 @@ body{
 header{
   position:sticky;
   top:0;
-  background:#0f172aee;
+  background:#031219;
   backdrop-filter:blur(10px);
   padding:15px 20px;
   border-bottom:1px solid #1e293b;
@@ -57,7 +59,7 @@ header p{
 }
 
 .card{
-  background:#1e293b;
+  background:#13181C;
   padding:18px;
   border-radius:18px;
 }
@@ -96,14 +98,10 @@ a{
    QURAN
 ========================= */
 
-#content{
-  padding:20px;
-}
-
 .mushaf{
-  background:#111827;
+  background:#031219;
   border-radius:24px;
-  padding:35px 25px;
+  padding:6px;
   font-family:'Amiri Quran', serif;
   font-size:21px;
   line-height:2.5;

@@ -875,11 +875,18 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   
   // Menu Settings
-  if (menuPengaturan && settingsPage && closeSettings) {
+  // JS
+menuPengaturan.onclick = () => {
+  settingsPage.style.display = 'block';
+  setTimeout(() => settingsPage.classList.add('show'), 10);
+};
+
+closeSettings.onclick = () => {
+  settingsPage.classList.remove('show');
+  setTimeout(() => {
     settingsPage.style.display = 'none';
-    menuPengaturan.onclick = () => settingsPage.style.display = 'block';
-    closeSettings.onclick = () => settingsPage.style.display = 'none';
-  }
+  }, 300);
+};
   
   // Calendar Navigation
   prevMonth?.addEventListener('click', () => {
@@ -2160,7 +2167,7 @@ const bulanHijriyah = ["Dzul Hijjah", "Muharom", "Sopar", "Robiul Awal", "Robiul
     </div>
     
 
-   <div class="note"><small>* Penangalan masehi memakai hisab urfi / Istilahi</small></div>
+   <div class="note"><small>* Penangalan masehi memakai hisab Istilahi</small></div>
    <div class="note"><small>* Harap koreksi jika ada kesalahan hitungan</small></div>
    
    </div>
