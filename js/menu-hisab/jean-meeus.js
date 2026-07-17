@@ -5,23 +5,20 @@ const btnBackToIjtimaJM = document.getElementById("btnBackToIjtimaJM");
 
 if (btnProsesHisabJM) {
   btnProsesHisabJM.onclick = () => {
-    const bln=9;
-    const thn=1448;
-    const latDes=-6.786;
-    const lonDes=107.178;
-    const tinggi=0;
-    const zona=7;
-    const lat=desKeDMS(latDes),lon=desKeDMS(lonDes);
+    const bln = document.getElementById('bulanhijriyahJM').value;
+    const thn = document.getElementById('kstJM').value;
+    const tinggi = Number(localStorage.getItem('altitude')) || 0;
+    const latSet = lokasi.lat, lonSet = lokasi.lon, zona = lokasi.tz, lat = desKeDMS(latSet),lon=desKeDMS(lonSet);
     
   class HisabHilal {
-    static D2R = Math.PI/180;
-    static R2D = 180/Math.PI;
-    static sinD(d) { return Math.sin(d*this.D2R); }
-    static cosD(d) { return Math.cos(d*this.D2R); }
-    static tanD(d) { return Math.tan(d*this.D2R); }
-    static asinD(v) { return Math.asin(v)*this.R2D; }
-    static acosD(v) { return Math.acos(Math.max(-1,Math.min(1,v)))*this.R2D; }
-    static atan2D(y,x) { return Math.atan2(y,x)*this.R2D; }
+    static d2r = Math.PI/180;
+    static r2d = 180/Math.PI;
+    static sinD(d) { return Math.sin(d*this.d2r); }
+    static cosD(d) { return Math.cos(d*this.d2r); }
+    static tanD(d) { return Math.tan(d*this.d2r); }
+    static asinD(v) { return Math.asin(v)*this.r2d; }
+    static acosD(v) { return Math.acos(Math.max(-1,Math.min(1,v)))*this.r2d; }
+    static atan2D(y,x) { return Math.atan2(y,x)*this.r2d; }
     static norm(a) { return a-360*Math.floor(a/360); }
 
     static tanggalKeJD(thn, bln, hari) {
@@ -70,21 +67,52 @@ if (btnProsesHisabJM) {
         detailKoreksi.push({rumus:`${kor[0].toFixed(6)} × ${fak===E?'E':fak===E2?'E²':'1'} × sin(${kor[2].toFixed(4)}°)`,nilai:val.toFixed(6)});
       });
       JDE+=totalKoreksi;
-      const A=[];
-      A[1]=this.norm(299.77+0.107408*k-0.009173*T2);A[2]=this.norm(251.88+0.016321*k);
-      A[3]=this.norm(251.83+26.651886*k);A[4]=this.norm(349.42+36.412478*k);A[5]=this.norm(84.66+18.206239*k);
-      A[6]=this.norm(141.74+53.303771*k);A[7]=this.norm(207.14+2.453732*k);A[8]=this.norm(154.84+7.30686*k);
-      A[9]=this.norm(34.52+27.261239*k);A[10]=this.norm(207.19+0.121824*k);A[11]=this.norm(291.34+1.844379*k);
-      A[12]=this.norm(161.72+24.198154*k);A[13]=this.norm(239.56+25.513099*k);A[14]=this.norm(331.55+3.592518*k);
-      const koreksiPlanet=[0.000325,0.000165,0.000164,0.000126,0.000110,0.000062,0.000060,0.000056,0.000047,0.000042,0.000040,0.000037,0.000035,0.000023];
-      let totalPlanet=0; const detailPlanet=[];
-      for(let i=1;i<=14;i++){const v=koreksiPlanet[i-1]*this.sinD(A[i]);totalPlanet+=v;detailPlanet.push({rumus:`${koreksiPlanet[i-1].toFixed(6)} × sin(A${i})`,nilai:v.toFixed(6)});}
-      JDE+=totalPlanet;
 
+      const A = [];
+            A[1]  = this.norm(299.77 + 0.107408 * k - 0.009173 * T2);
+            A[2]  = this.norm(251.88 + 0.016321 * k);
+            A[3]  = this.norm(251.83 + 26.651886 * k);
+            A[4]  = this.norm(349.42 + 36.412478 * k);
+            A[5]  = this.norm(84.66 + 18.206239 * k);
+            A[6]  = this.norm(141.74 + 53.303771 * k);
+            A[7]  = this.norm(207.14 + 2.453732 * k);
+            A[8]  = this.norm(154.84 + 7.306860 * k);
+            A[9]  = this.norm(34.52 + 27.261239 * k);
+            A[10] = this.norm(207.19 + 0.121824 * k);
+            A[11] = this.norm(291.34 + 1.844379 * k);
+            A[12] = this.norm(161.72 + 24.198154 * k);
+            A[13] = this.norm(239.56 + 25.513099 * k);
+            A[14] = this.norm(331.55 + 3.592518 * k);
+
+      const A1  = A[1], A2  = A[2], A3  = A[3], A4  = A[4], A5  = A[5], A6  = A[6], A7  = A[7], A8  = A[8], A9  = A[9], A10 = A[10], A11 = A[11], A12 = A[12], A13 = A[13], A14 = A[14];
+
+      const P1  = 0.000325 * this.sinD(A1),
+            P2  = 0.000165 * this.sinD(A2),
+            P3  = 0.000164 * this.sinD(A3),
+            P4  = 0.000126 * this.sinD(A4),
+            P5  = 0.000110 * this.sinD(A5),
+            P6  = 0.000062 * this.sinD(A6),
+            P7  = 0.000060 * this.sinD(A7),
+            P8  = 0.000056 * this.sinD(A8),
+            P9  = 0.000047 * this.sinD(A9),
+            P10 = 0.000042 * this.sinD(A10),
+            P11 = 0.000040 * this.sinD(A11),
+            P12 = 0.000037 * this.sinD(A12),
+            P13 = 0.000035 * this.sinD(A13),
+            P14 = 0.000023 * this.sinD(A14);
+      
+      const totalPlanet =
+          P1 + P2 + P3 + P4 + P5 + P6 + P7 +
+          P8 + P9 + P10 + P11 + P12 + P13 + P14;
+      
+      JDE += totalPlanet;
+      
       return {
-        k,T,JDE_awal:2451550.09766+29.530588861*k+0.00015437*T2-0.00000015*T3+0.00000000073*T4,
-        T,M,Maksen,F,Omega,E,JDE:JDE,totalKoreksi,detailKoreksi,totalPlanet,detailPlanet
+          k,
+          T,
+          JDE_awal: 2451550.09766 + 29.530588861 * k + 0.00015437 * T2 - 0.00000015 * T3 + 0.00000000073 * T4, M, Maksen, F, Omega, E, JDE, totalKoreksi, detailKoreksi, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, totalPlanet
       };
+      
     }
 
     static perkiraanKDariHijriah(thnH, blnH) {
@@ -122,7 +150,7 @@ if (btnProsesHisabJM) {
       const dec=this.asinD(this.sinD(eps)*this.sinD(lambda));
       const y=this.tanD(eps/2),y2=y*y;
       const perata=y2*this.sinD(2*L0)-2*e*this.sinD(M)+4*e*y2*this.sinD(M)*this.cosD(2*L0)-0.5*y2*y2*this.sinD(4*L0)-1.25*e*e*this.sinD(2*M);
-      return {lambda,ra,dec,R,perataMenit:4*perata*this.R2D,eps,T};
+      return {lambda,ra,dec,R,perataMenit:4*perata*this.r2d,eps,T};
     }
 
     static posisiBulan(jd) {
@@ -275,12 +303,9 @@ if (btnProsesHisabJM) {
   }
 
   function desKeDMS(des){const s=des<0?-1:1,a=Math.abs(des);const d=Math.floor(a),m=Math.floor((a-d)*60),det=((a-d)*60-m)*60;return{d:s*d,m:s*m,s:s*det};}
-  const hasil = HisabHilal.hitungAwalBulanLengkap(
-    bln, thn,
-    lat.d, lat.m, lat.s,
-    lon.d, lon.m, lon.s,
-    tinggi, zona
-);
+    const hasil = HisabHilal.hitungAwalBulanLengkap(
+      bln, thn, lat.d, lat.m, lat.s, lon.d, lon.m, lon.s, tinggi, zona
+  );
 
   const d = hasil;
   const vis = (d.tinggi.tinggiMari > 0 && d.elongasi > 6.4)
@@ -290,34 +315,52 @@ if (btnProsesHisabJM) {
 
     panel.innerHTML=`
     <div class="hisab-list">
-
-      <div class="row"><span>Julian Day</span><span>${d.jdPerkiraan.toFixed(4)}</span></div>
-      <div class="row"><span>Nilai k</span><span>${d.k}</span></div>
-      <div class="row"><span>Konjungsi X</span><span>${d.k}</span></div>
+      <div class="row"><span>Julian Day (JD)</span><span>${d.jdPerkiraan.toFixed(4)}</span></div>
+      <div class="row"><span>Jumlah Konjungsi (k)</span><span>${d.k}</span></div>
     
-      <div class="row"><span>T (abad sejak J2000)</span><span>${d.detailJDE.T.toFixed(6)}</span></div>
-      <div class="row"><span>JDE awal</span><span>${d.detailJDE.JDE_awal.toFixed(6)}</span></div>
-      <div class="row"><span>M (Anomali Matahari)</span><span>${d.detailJDE.M.toFixed(4)}°</span></div>
-      <div class="row"><span>M' (Anomali Bulan)</span><span>${d.detailJDE.Maksen.toFixed(4)}°</span></div>
-      <div class="row"><span>F (Argumen Lintang)</span><span>${d.detailJDE.F.toFixed(4)}°</span></div>
-      <div class="row"><span>Ω (Bujur Node)</span><span>${d.detailJDE.Omega.toFixed(4)}°</span></div>
-      <div class="row"><span>E (Eksentrisitas)</span><span>${d.detailJDE.E.toFixed(6)}</span></div>
+      <div class="row"><span>Adad Julian (T)</span><span>${d.detailJDE.T.toFixed(6)}</span></div>
+      <div class="row"><span>Julian Day Ephemeris (JDE)</span><span>${d.detailJDE.JDE_awal.toFixed(6)}</span></div>
+      <div class="row"><span>Anomali Matahari (M)</span><span>${d.detailJDE.M.toFixed(4)}°</span></div>
+      <div class="row"><span>Anomali Bulan (M')</span><span>${d.detailJDE.Maksen.toFixed(4)}°</span></div>
+      <div class="row"><span>Argumen Lintang (F)</span><span>${d.detailJDE.F.toFixed(4)}°</span></div>
+      <div class="row"><span>Bujur Node (Ω)</span><span>${d.detailJDE.Omega.toFixed(4)}°</span></div>
+      <div class="row"><span>Eksentrisitas (E)</span><span>${d.detailJDE.E.toFixed(6)}</span></div>
+      <div class="row"><span>Koreksi A1</span><span>${d.detailJDE.detailKoreksi[1].nilai}</span></div>
+      <div class="row"><span>Koreksi A2</span><span>${d.detailJDE.detailKoreksi[1].nilai}</span></div>
+      <div class="row"><span>Koreksi A3</span><span>${d.detailJDE.detailKoreksi[2].nilai}</span></div>
+      <div class="row"><span>Koreksi A4</span><span>${d.detailJDE.detailKoreksi[3].nilai}</span></div>
+      <div class="row"><span>Koreksi A5</span><span>${d.detailJDE.detailKoreksi[4].nilai}</span></div>
+      <div class="row"><span>Koreksi A6</span><span>${d.detailJDE.detailKoreksi[5].nilai}</span></div>
+      <div class="row"><span>Koreksi A7</span><span>${d.detailJDE.detailKoreksi[6].nilai}</span></div>
+      <div class="row"><span>Koreksi A8</span><span>${d.detailJDE.detailKoreksi[7].nilai}</span></div>
+      <div class="row"><span>Koreksi A9</span><span>${d.detailJDE.detailKoreksi[8].nilai}</span></div>
+      <div class="row"><span>Koreksi A10</span><span>${d.detailJDE.detailKoreksi[9].nilai}</span></div>
+      <div class="row"><span>Koreksi A11</span><span>${d.detailJDE.detailKoreksi[10].nilai}</span></div>
+      <div class="row"><span>Koreksi A12</span><span>${d.detailJDE.detailKoreksi[11].nilai}</span></div>
+      <div class="row"><span>Koreksi A13</span><span>${d.detailJDE.detailKoreksi[12].nilai}</span></div>
+      <div class="row"><span>Koreksi A14</span><span>${d.detailJDE.detailKoreksi[13].nilai}</span></div>
+      <div class="row"><span>Koreksi A15</span><span>${d.detailJDE.detailKoreksi[14].nilai}</span></div>
       <div class="row"><span>Total Koreksi Periodik</span><span>${d.detailJDE.totalKoreksi.toFixed(6)} hari</span></div>
+      
+      <div class="row"><span>Koreksi Planet A1</span><span>${d.detailJDE.P1.toFixed(6)}</span></div>
+      <div class="row"><span>Koreksi Planet A2</span><span>${d.detailJDE.P2.toFixed(6)}</span></div>
+      <div class="row"><span>Koreksi Planet A3</span><span>${d.detailJDE.P3.toFixed(6)}</span></div>
+      <div class="row"><span>Koreksi Planet A4</span><span>${d.detailJDE.P4.toFixed(6)}</span></div>
+      <div class="row"><span>Koreksi Planet A5</span><span>${d.detailJDE.P5.toFixed(6)}</span></div>
+      <div class="row"><span>Koreksi Planet A6</span><span>${d.detailJDE.P6.toFixed(6)}</span></div>
+      <div class="row"><span>Koreksi Planet A7</span><span>${d.detailJDE.P7.toFixed(6)}</span></div>
+      <div class="row"><span>Koreksi Planet A8</span><span>${d.detailJDE.P8.toFixed(6)}</span></div>
+      <div class="row"><span>Koreksi Planet A9</span><span>${d.detailJDE.P9.toFixed(6)}</span></div>
+      <div class="row"><span>Koreksi Planet A10</span><span>${d.detailJDE.P10.toFixed(6)}</span></div>
+      <div class="row"><span>Koreksi Planet A11</span><span>${d.detailJDE.P11.toFixed(6)}</span></div>
+      <div class="row"><span>Koreksi Planet A12</span><span>${d.detailJDE.P12.toFixed(6)}</span></div>
+      <div class="row"><span>Koreksi Planet A13</span><span>${d.detailJDE.P13.toFixed(6)}</span></div>
+      <div class="row"><span>Koreksi Planet A14</span><span>${d.detailJDE.P14.toFixed(6)}</span></div>
       <div class="row"><span>Total Koreksi Planet</span><span>${d.detailJDE.totalPlanet.toFixed(6)} hari</span></div>
+      
       <div class="row"><span>JDE Akhir</span><span>${d.detailJDE.JDE.toFixed(6)}</span></div>
-      <div class="row"><span>ΔT</span><span>${d.deltaT.toFixed(2)} detik</span></div>
+      <div class="row"><span>Delta (ΔT) </span><span>${d.deltaT} detik</span></div>
       <div class="row"><span>JD Ijtimak (UT)</span><span>${d.jdIjtimak.toFixed(6)}</span></div>
-    
-      <div class="row"><span>Detail Koreksi 1</span><span>${d.detailJDE.detailKoreksi[0].nilai}</span></div>
-      <div class="row"><span>Detail Koreksi 2</span><span>${d.detailJDE.detailKoreksi[1].nilai}</span></div>
-      <div class="row"><span>Detail Koreksi 3</span><span>${d.detailJDE.detailKoreksi[2].nilai}</span></div>
-      <div class="row"><span>Detail Koreksi 4</span><span>${d.detailJDE.detailKoreksi[3].nilai}</span></div>
-      <div class="row"><span>Detail Koreksi 5</span><span>${d.detailJDE.detailKoreksi[4].nilai}</span></div>
-      <div class="row"><span>Detail Koreksi 6</span><span>${d.detailJDE.detailKoreksi[5].nilai}</span></div>
-      <div class="row"><span>Detail Koreksi 7</span><span>${d.detailJDE.detailKoreksi[6].nilai}</span></div>
-      <div class="row"><span>Detail Koreksi 8</span><span>${d.detailJDE.detailKoreksi[7].nilai}</span></div>
-      <div class="row"><span>Detail Koreksi 9</span><span>${d.detailJDE.detailKoreksi[8].nilai}</span></div>
-      <div class="row"><span>Detail Koreksi 10</span><span>${d.detailJDE.detailKoreksi[9].nilai}</span></div>
     
       <div class="row"><span>JD Ijtimak</span><span>${d.jdIjtimak.toFixed(6)}</span></div>
       <div class="row"><span>Tanggal Ijtimak</span><span>${d.ijtimak.tgl} ${["","Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"][d.ijtimak.bln]} ${d.ijtimak.thn}</span></div>
@@ -329,7 +372,7 @@ if (btnProsesHisabJM) {
       <div class="row"><span>Asensio Rekta Matahari</span><span>${HisabHilal.keHMS(d.matahari.ra/15)}</span></div>
       <div class="row"><span>Deklinasi Matahari</span><span>${HisabHilal.keDMS(d.matahari.dec)}</span></div>
       <div class="row"><span>Azimut Matahari</span><span>${HisabHilal.keDMS(d.matahari.az)}</span></div>
-      <div class="row"><span>Perata Waktu</span><span>${d.matahari.perata.toFixed(2)} menit</span></div>
+      <div class="row"><span>Perata Waktu</span><span>${HisabHilal.keHMS(d.matahari.perata)}</span></div>
     
       <div class="row"><span>Asensio Rekta Bulan</span><span>${HisabHilal.keHMS(d.bulan.ra/15)}</span></div>
       <div class="row"><span>Deklinasi Bulan</span><span>${HisabHilal.keDMS(d.bulan.dec)}</span></div>
