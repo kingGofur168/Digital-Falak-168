@@ -37,9 +37,6 @@
                     <div class="settings-text">
                         <strong>Mode Lokasi</strong>
                         <span>Ubah koordinat jika manual</span>
-                        <!--
-                        <span id="locationModeDesc">Otomatis</span>
-                        -->
                     </div>
                     <div class="settings-value">
                         <span id="locationModeValue">Otomatis</span>
@@ -230,32 +227,150 @@
 
 <div id="panelHisab" class="hisab-panel hidden">
     <div class="hisab-header">
-        <h3>Input Hisab</h3>
+        <h3>Hisab Ijtima</h3>
         <button id="closeHisab" class="btn-close">
             <i class="bi bi-x"></i>
         </button>
     </div>
     
     <div class="hisab-tabs">
-        <button class="tab active">TAQWIEM</button>
-        <button class="tab">SHOLAT & QIBLAT</button>
-        <button class="tab">HIJRI</button>
-        <button class="tab">MASEHI</button>
+        <button class="tab active">SULAM</button>
+        <button class="tab">F-ROUF</button>
+        <button class="tab">JEAN-M</button>
     </div>
     
-    <!-- Konten Ijtima -->
+    <!-- Konten Ijtima Sulamun Nayirein-->
     <div class="hisab-content" id="hisabAkhirBulan">
         <div class="field">
-            <label>Tahun Kumpulan</label>
-            <input type="number" value="1440" id="tahunmajmuah">
-        </div>
-        <div class="field">
-            <label>Tahun Satuan</label>
-            <input type="number" value="7" id="tahunmabsutoh">
+            <label>Tahun</label>
+            <input type="number" value="1448" id="kst">
         </div>
         <div class="field">
             <label>Bulan</label>
             <select id='bulanhijriyah'>
+                <option value="1">01. Muharram</option>
+                <option value="2">02. Shafar</option>
+                <option value="3">03. Rabiul Awal</option>
+                <option value="4">04. Rabiul Akhir</option>
+                <option value="5">05. Jumadil Awal</option>
+                <option value="6">06. Jumadil Akhir</option>
+                <option value="7">07. Rajab</option>
+                <option value="8">08. Sya'ban</option>
+                <option value="9" selected>09. Ramadhan</option>
+                <option value="10">10. Syawal</option>
+                <option value="11">11. Dzulqa'dah</option>
+                <option value="12">12. Dzulhijjah</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>Irtifa'</label>
+            <select id='derajatirtipa'>
+                <option value="1">2°</option>
+                <option value="2">3°</option>
+                <option value="3">6°</option>
+                <option value="4">7°</option>
+            </select>
+        </div>
+        <button class="btn-process" id="btnProsesHisab">PROSES</button>
+    </div>
+    
+    <!-- Konten Ijtima Fathur Rouf-->
+    <div class="hisab-content" id="hisabAkhirBulanFR">
+        <div class="field">
+            <label>Tahun</label>
+            <input type="number" value="1448" id="kstFR">
+        </div>
+        <div class="field">
+            <label>Bulan</label>
+            <select id='bulanhijriyahFR'>
+                <option value="1">01. Muharram</option>
+                <option value="2">02. Shafar</option>
+                <option value="3">03. Rabiul Awal</option>
+                <option value="4">04. Rabiul Akhir</option>
+                <option value="5">05. Jumadil Awal</option>
+                <option value="6">06. Jumadil Akhir</option>
+                <option value="7">07. Rajab</option>
+                <option value="8">08. Sya'ban</option>
+                <option value="9" selected>09. Ramadhan</option>
+                <option value="10">10. Syawal</option>
+                <option value="11">11. Dzulqa'dah</option>
+                <option value="12">12. Dzulhijjah</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>Irtifa'</label>
+            <select id='drjIFR'>
+                <option value="1">2°</option>
+                <option value="2">3°</option>
+                <option value="3">6°</option>
+                <option value="4">7°</option>
+            </select>
+        </div>
+        <button class="btn-process" id="btnProsesHisabFR">PROSES</button>
+    </div>
+    
+    <!-- Konten Ijtima Jean Meeus-->
+    <div class="hisab-content" id="hisabAkhirBulanJM">
+        <div class="field">
+            <label>Tahun</label>
+            <input type="number" value="1448" id="kstJM">
+        </div>
+        <div class="field">
+            <label>Bulan</label>
+            <select id='bulanhijriyahJM'>
+                <option value="1">01. Muharram</option>
+                <option value="2">02. Shafar</option>
+                <option value="3">03. Rabiul Awal</option>
+                <option value="4">04. Rabiul Akhir</option>
+                <option value="5">05. Jumadil Awal</option>
+                <option value="6">06. Jumadil Akhir</option>
+                <option value="7">07. Rajab</option>
+                <option value="8">08. Sya'ban</option>
+                <option value="9" selected>09. Ramadhan</option>
+                <option value="10">10. Syawal</option>
+                <option value="11">11. Dzulqa'dah</option>
+                <option value="12">12. Dzulhijjah</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>Irtifa'</label>
+            <select id='derajatirtipaJM'>
+                <option value="1">2°</option>
+                <option value="2">3°</option>
+                <option value="3">6°</option>
+                <option value="4">7°</option>
+            </select>
+        </div>
+        <button class="btn-process" id="btnProsesHisabJM">PROSES</button>
+    </div>
+    
+</div>
+
+<div id="kalkulatorOverlay" class="overlay hidden"></div>
+<div id="panelKalkulator" class="hisab-panel hidden">
+    <div class="hisab-header">
+        <h3>Input Kalkulator</h3>
+        <button class="btn-close" id="closeKalkulator">
+            <i class="bi bi-x"></i>
+        </button>
+    </div>
+    
+    <div class="kalkulator-tabs">
+        <button class="tab active">HARI TAHLIL</button>
+        <button class="tab">HARI LAHIR</button>
+        <button class="tab">CVR-H to M</button>
+        <button class="tab">CVR-M to H</button>
+    </div>
+    
+    <!-- Input Hari Tahlil -->
+    <div class="hisab-content" id="inputHariTahlil">
+        <div class="field">
+            <label>Tanggal</label>
+            <input type="number" id="tglWafat" min="1" max="30" value="1">
+        </div>
+        <div class="field">
+            <label>Bulan</label>
+            <select id="blnWafat">
                 <option value="1">01. Muharram</option>
                 <option value="2">02. Shafar</option>
                 <option value="3">03. Rabiul Awal</option>
@@ -271,52 +386,30 @@
             </select>
         </div>
         <div class="field">
-            <label>Irtipa'</label>
-            <select id='derajatirtipa'>
-                <option value="1">2°</option>
-                <option value="2">3°</option>
-                <option value="3">6°</option>
-                <option value="4">7°</option>
-            </select>
+            <label>Tahun</label>
+            <input type="number" id="thnWafat" value="1447">
         </div>
-        <button class="btn-process" id="btnProsesHisab">PROSES</button>
+        <button class="btn-process" id="btnHitungTahlilH">PROSES</button>
     </div>
     
-    <!-- Konten Sholat & Qiblat -->
-    <div class="hisab-content hidden" id="panelInputSholat">
+    <!-- Input Hari Lahir -->
+    <div class="hisab-content hidden" id="inputHariLahir">
         <div class="field">
             <label>Tanggal</label>
-            <input id="inputTanggal" type="number" min="1" max="31" value="20">
+            <input type="date" id="birthdate" required>
         </div>
         <div class="field">
-            <label>Bulan</label>
-            <select id='inputBulan'>
-                <option value="1">01. Januari</option>
-                <option value="2">02. Februari</option>
-                <option value="3">03. Maret</option>
-                <option value="4">04. April</option>
-                <option value="5">05. Mei</option>
-                <option value="6">06. Juni</option>
-                <option value="7">07. Juli</option>
-                <option value="8">08. Agustus</option>
-                <option value="9">09. September</option>
-                <option value="10">10. Oktober</option>
-                <option value="11">11. November</option>
-                <option value="12">12. Desember</option>
-            </select>
+            <label>Jumlah hari keseluruhan</label>
+            <input type="text" id="resultDays" name="resultDays" placeholder="Hasil langsung disini" readonly>
         </div>
         <div class="field">
-            <label>Tahun</label>
-            <input type="number" id="inputTahun" value="2026">
+            <label>Jumlah tahun/bulan/hari</label>
+            <input type="text" id="resultYearsMonthsDays" name="resultYearsMonthsDays" placeholder="Hasil langsung disini" readonly>
         </div>
-        <div class="field">
-            <label>Ihtiyat (2-5 Menit)</label>
-            <input id="ihtiyatSholat" type="number" min="2" max="5" value="2">
-        </div>
-        <button class="btn-process" id="btnProsesWaktuSholat">PROSES</button>
+        <button class="btn-process" id="calculateDays">PROSES</button>
     </div>
     
-    <!-- Konversi Hijri ke Masehi -->
+        <!-- Konversi Hijri ke Masehi -->
     <div class="hisab-content hidden" id="konveriH_M">
         <div class="field">
             <label>Tanggal</label>
@@ -383,67 +476,7 @@
         </div>
         <button class="btn-process" id="btnProsesKonversiM_H">PROSES</button>
     </div>
-</div>
-<div id="kalkulatorOverlay" class="overlay hidden"></div>
-<div id="panelKalkulator" class="hisab-panel hidden">
-    <div class="hisab-header">
-        <h3>Input Kalkulator</h3>
-        <button class="btn-close" id="closeKalkulator">
-            <i class="bi bi-x"></i>
-        </button>
-    </div>
     
-    <div class="kalkulator-tabs">
-        <button class="tab active">HARI TAHLIL</button>
-        <button class="tab">HARI LAHIR</button>
-    </div>
-    
-    <!-- Input Hari Tahlil -->
-    <div class="hisab-content" id="inputHariTahlil">
-        <div class="field">
-            <label>Tanggal</label>
-            <input type="number" id="tglWafat" min="1" max="30" value="1">
-        </div>
-        <div class="field">
-            <label>Bulan</label>
-            <select id="blnWafat">
-                <option value="1">01. Muharram</option>
-                <option value="2">02. Shafar</option>
-                <option value="3">03. Rabiul Awal</option>
-                <option value="4">04. Rabiul Akhir</option>
-                <option value="5">05. Jumadil Awal</option>
-                <option value="6">06. Jumadil Akhir</option>
-                <option value="7">07. Rajab</option>
-                <option value="8">08. Sya'ban</option>
-                <option value="9">09. Ramadhan</option>
-                <option value="10">10. Syawal</option>
-                <option value="11">11. Dzulqa'dah</option>
-                <option value="12">12. Dzulhijjah</option>
-            </select>
-        </div>
-        <div class="field">
-            <label>Tahun</label>
-            <input type="number" id="thnWafat" value="1447">
-        </div>
-        <button class="btn-process" id="btnHitungTahlilH">PROSES</button>
-    </div>
-    
-    <!-- Input Hari Lahir -->
-    <div class="hisab-content hidden" id="inputHariLahir">
-        <div class="field">
-            <label>Tanggal</label>
-            <input type="date" id="birthdate" required>
-        </div>
-        <div class="field">
-            <label>Jumlah hari keseluruhan</label>
-            <input type="text" id="resultDays" name="resultDays" placeholder="Hasil langsung disini" readonly>
-        </div>
-        <div class="field">
-            <label>Jumlah tahun/bulan/hari</label>
-            <input type="text" id="resultYearsMonthsDays" name="resultYearsMonthsDays" placeholder="Hasil langsung disini" readonly>
-        </div>
-        <button class="btn-process" id="calculateDays">PROSES</button>
-    </div>
 </div>
 
 <div id="lainnyaOverlay" class="overlay hidden"></div>
@@ -532,22 +565,32 @@
         <button id="btnBackToIjtima" class="back-btn">
             <i class="bi bi-arrow-left"></i>
         </button>
-        <h3>Hisab Ijtima</h3>
+        <h3>Sulamu an-Nayirein</h3>
     </div>
     <div class="card hisab-content">
         <div class="hasil-row" id="hasilHisabAkhirBulan"></div>
     </div>
 </div>
-
-<div id="panelHasilHisabSholat" class="hisab-panel hidden">
+<div id="panelHasilHisabFR" class="hisab-panel hidden">
     <div class="hisab-header">
-        <button id="btnBackToHitungSholat" class="back-btn">
+        <button id="btnBackToIjtimaFR" class="back-btn">
             <i class="bi bi-arrow-left"></i>
         </button>
-        <h3>Hisab Waktu Sholat & Qiblat</h3>
+        <h3>Fathu ar-Rouf</h3>
     </div>
     <div class="card hisab-content">
-        <div class="hasil-row" id="hasilHisabWaktuSholat"></div>
+        <div class="hasil-row" id="hasilHisabAkhirBulanFR"></div>
+    </div>
+</div>
+<div id="panelHasilHisabJM" class="hisab-panel hidden">
+    <div class="hisab-header">
+        <button id="btnBackToIjtimaJM" class="back-btn">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+        <h3>Jean Meeus</h3>
+    </div>
+    <div class="card hisab-content">
+        <div class="hasil-row" id="hasilHisabAkhirBulanJM"></div>
     </div>
 </div>
 
@@ -576,7 +619,6 @@
     </div>
 </div>
 
-
 <!-- Footer Menu -->
 <div class="footer">
     <div class="menu" id="menuPengaturan">
@@ -587,8 +629,9 @@
         <i class="bi bi-moon-fill"></i>
         <br>Hisab
     </div>
-    <div class="menu"><a href="quran.html"><i class="bi bi-book-fill"></i></a>
-        <br>Al-Qur'an
+    <div class="menu" id="menu-hisabWS">
+        <i class="bi bi-sun-fill"></i>
+        <br>Waktu Sholat
     </div>
     <div class="menu" id="menu-kalkulator">
         <i class="bi bi-calculator-fill"></i>
@@ -600,6 +643,15 @@
 
 </div>
 
+<script src="js/suncalc3.js"></script>
+<script src="../js/menu-hisab/jean-meeus.js"></script>
 <script type="module" src="js/main.js"></script>
+<script type="module" src="js/menu-settings.js"></script>
+<script type="module" src="js/menu-hisab.js"></script>
+<script type="module" src="../js/menu-hisab/sulam.js"></script>
+<script type="module" src="../js/menu-hisab/fathur-rouf.js"></script>
+<script type="module" src="js/menu-kalkulator.js"></script>
+<script type="module" src="js/menu-lainnya.js"></script>
+<script type="module" src="js/menu-menu-waktu-shalat.js"></script>
 </body>
 </html>

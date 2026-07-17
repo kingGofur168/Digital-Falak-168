@@ -813,6 +813,14 @@ body.light .kalkulator-tabs .tab.active {
   font-size:13px;
 }
 
+.hisab-list .kelompok {
+  text-align: center;
+  border-bottom:1px solid #222;
+  font-size:14px;
+  font-weight: 600;
+  padding:6px 0;
+}
+
 .lainnya-icons {
     display: flex;
     gap: 2px;

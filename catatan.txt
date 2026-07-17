@@ -1,0 +1,13 @@
+├── index.html
+├── css/
+│   └── style.css
+└── js/
+    ├── settings.js        // Pengaturan & localStorage
+    ├── prayer-times.js    // Hisab waktu sholat
+    ├── hijri-calendar.js  // Konversi Hijriyah & kalender
+    ├── hisab-awal-bulan.js // Hisab ijtima' (Sulamun Nayirein & Jean Meeus)
+    ├── ui.js              // Render UI, countdown, modal
+    ├── main.js            // Inisialisasi & event listener
+    └── data/
+        ├── tadil-markaz.js // Data lookup (hanya jika banyak)
+        └── libur.js        // Data libur nasional & Islam
