@@ -8,6 +8,7 @@ if (btnProsesHisabJM) {
     const bln = document.getElementById('bulanhijriyahJM').value;
     const thn = document.getElementById('kstJM').value;
     const tinggi = Number(localStorage.getItem('altitude')) || 0;
+    const kriteria = document.getElementById('diJM').value; 
     const latSet = lokasi.lat, lonSet = lokasi.lon, zona = lokasi.tz, lat = desKeDMS(latSet),lon=desKeDMS(lonSet);
     
   class HisabHilal {
@@ -64,7 +65,7 @@ if (btnProsesHisabJM) {
         let fak=1; if(kor[1]===2)fak=E; else if(kor[1]===3)fak=E2;
         const val=kor[0]*fak*this.sinD(kor[2]);
         totalKoreksi+=val;
-        detailKoreksi.push({rumus:`${kor[0].toFixed(6)} × ${fak===E?'E':fak===E2?'E²':'1'} × sin(${kor[2].toFixed(4)}°)`,nilai:val.toFixed(6)});
+        detailKoreksi.push({rumus:`${kor[0].toFixed(9)} × ${fak===E?'E':fak===E2?'E²':'1'} × sin(${kor[2].toFixed(6)}°)`,nilai:val.toFixed(9)});
       });
       JDE+=totalKoreksi;
 
@@ -165,75 +166,95 @@ if (btnProsesHisabJM) {
       return {T,Laksen,D,M,Maksen,F,E,eps:this.oblikuitasRataRata(jd)+this.nutasiDetail(jd).deps};
     }
 
-    static hitungAwalBulanLengkap(blnH,thnH,latD,latM,latS,lonD,lonM,lonS,elev,zona) {
-      const lintang=latD+(latD<0?-1:1)*(Math.abs(latM)/60+Math.abs(latS)/3600);
-      const bujur=lonD+lonM/60+lonS/3600;
-      const {k,jdPerkiraan}=this.perkiraanKDariHijriah(thnH,blnH);
-      const detailJDE=this.jdeBulanBaruDetail(k);
-      const jdeNM=detailJDE.JDE;
-      const thnMasehi=this.jdKeTanggal(jdeNM).tahun;
-      const deltaTVal=this.deltaT(thnMasehi);
-      const jdIjtimak=jdeNM-deltaTVal/86400;
-      const tglIjt=this.jdKeTanggal(jdIjtimak);
-      let jamIjt=24*(tglIjt.hari-Math.floor(tglIjt.hari))+zona;
-      let hariIjt=Math.floor(tglIjt.hari);
-      if(jamIjt>=24){jamIjt-=24;hariIjt++;}
-      if(jamIjt<0){jamIjt+=24;hariIjt--;}
-      const jdIjtDate=this.tanggalKeJD(tglIjt.tahun,tglIjt.bulan,hariIjt);
-      const indHari=Math.floor(jdIjtimak+1.5)%7, indPasar=Math.floor(jdIjtimak+0.5)%5;
+    static hitungAwalBulanLengkap(blnH, thnH, latD, latM, latS, lonD, lonM, lonS, elev, zona, kriteria) {
+    const lintang = latD + (latD < 0 ? -1 : 1) * (Math.abs(latM) / 60 + Math.abs(latS) / 3600);
+    const bujur = lonD + lonM / 60 + lonS / 3600;
+    const { k, jdPerkiraan } = this.perkiraanKDariHijriah(thnH, blnH);
+    const detailJDE = this.jdeBulanBaruDetail(k);
+    const jdeNM = detailJDE.JDE;
+    const thnMasehi = this.jdKeTanggal(jdeNM).tahun;
+    const deltaTVal = this.deltaT(thnMasehi);
+    const jdIjtimak = jdeNM - deltaTVal / 86400;
+    const tglIjt = this.jdKeTanggal(jdIjtimak);
+    let jamIjt = 24 * (tglIjt.hari - Math.floor(tglIjt.hari)) + zona;
+    let hariIjt = Math.floor(tglIjt.hari);
+    if (jamIjt >= 24) { jamIjt -= 24; hariIjt++; }
+    if (jamIjt < 0) { jamIjt += 24; hariIjt--; }
+    const jdIjtDate = this.tanggalKeJD(tglIjt.tahun, tglIjt.bulan, hariIjt);
+    const indHari = Math.floor(jdIjtimak + 1.5) % 7, indPasar = Math.floor(jdIjtimak + 0.5) % 5;
 
-      const jdApprox=Math.floor(jdIjtimak+zona/24+0.5)-0.5;
-      let sunset=null;
-      for(let off=0;off<3;off++){
-        const cek=[jdApprox,jdApprox+1,jdApprox-1][off];
-        const s=this.hitungTerbenam(cek,lintang,bujur,zona,elev);
-        if(s!==null){sunset=s;break;}
-      }
-      if(sunset===null)sunset=18;
-      const jdGhurub=jdApprox+(sunset-zona)/24;
-      const sunrise=this.hitungTerbit(jdApprox,lintang,bujur,zona,elev);
-
-      const posMat=this.posisiMatahari(jdGhurub);
-      const lst=this.waktuSiderealLokal(jdGhurub,bujur);
-      const horMat=this.ekuatorialKeHorizontal(posMat.ra,posMat.dec,lintang,lst);
-
-      const posBulanRaw=this.posisiBulan(jdGhurub);
-      const posBulan=this.bulanPosisiPenuh(jdGhurub);
-      const topo=this.bulanToposentrik(posBulan,lintang,elev,lst);
-      const horBulan=this.ekuatorialKeHorizontal(topo.ra,topo.dec,lintang,lst);
-      const horBulanGeo=this.ekuatorialKeHorizontal(posBulan.ra,posBulan.dec,lintang,lst);
-
-      const hcHakiki=horBulanGeo.tinggi, htTopo=horBulan.tinggi;
-      let refr=0; if(hcHakiki>-5){const ha=hcHakiki+7.31/(hcHakiki+4.4);refr=ha>0?0.0167/this.tanD(ha):0.575;}
-      const dip=elev>0?(1.76/60)*Math.sqrt(elev):0;
-      const tinggiMari=htTopo+refr+dip;
-      const elong=this.acosD(this.sinD(posMat.dec)*this.sinD(posBulan.dec)+this.cosD(posMat.dec)*this.cosD(posBulan.dec)*this.cosD(posMat.ra-posBulan.ra));
-      const nurul=((1-this.cosD(elong))/2*100).toFixed(2);
-      const umur=24*(jdGhurub-jdIjtimak);
-      let lama=0;if(horBulan.tinggi>0)lama=horBulan.tinggi/15;
-      const ijtSebelum=jdIjtimak<jdGhurub;
-      const jdAwal=(ijtSebelum&&tinggiMari>=3&&elong>=6.4)?jdApprox+1+zona/24:jdApprox+2+zona/24;
-      const tglAwal=this.jdKeTanggal(jdAwal);
-      const namaHari=["Ahad","Senin","Selasa","Rabu","Kamis","Jum'at","Sabtu"];
-      const namaPasaran=["Legi","Pahing","Pon","Wage","Kliwon"];
-      const namaBulanM=["","Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
-      const namaBulanH=["","Muharram","Shafar","Rabiul Awal","Rabiul Akhir","Jumadil Ula","Jumadil Akhirah","Rajab","Sya'ban","Ramadhan","Syawwal","Dzulqa'dah","Dzulhijjah"];
-
-      return {
-        input:{blnH,thnH,lintang,bujur,elev,zona},
-        k,jdPerkiraan,
-        detailJDE,deltaT:deltaTVal,jdIjtimak,
-        ijtimak:{tgl:Math.floor(tglIjt.hari),bln:tglIjt.bulan,thn:tglIjt.tahun,jam:jamIjt,hari:namaHari[indHari<0?indHari+7:indHari],pasaran:namaPasaran[indPasar<0?indPasar+5:indPasar],jdIjtDate},
-        ghurub:{jdApprox,sunset,sunrise,jdGhurub},
-        matahari:{ra:posMat.ra,dec:posMat.dec,az:horMat.azimut,perata:posMat.perataMenit},
-        bulan:{ra:posBulan.ra,dec:posBulan.dec,az:horBulan.azimut,paralaks:posBulan.HP},
-        tinggi:{hcHakiki,htTopo,refraksi:refr,dip,tinggiMari},
-        elongasi:elong,nurulHilal:nurul,umurHilal:umur,lamaHilal:lama,
-        ijtSebelumGhurub:ijtSebelum,
-        awal:{hari:namaHari[Math.floor(jdAwal+1.5)%7],pasaran:namaPasaran[Math.floor(jdAwal+0.5)%5],tgl:Math.floor(tglAwal.hari),bln:tglAwal.bulan,thn:tglAwal.tahun,namaBulan:namaBulanM[tglAwal.bulan]},
-        namaBulanH:namaBulanH[blnH],zonaNama:zona===7?"WIB":zona===8?"WITA":zona===9?"WIT":`GMT+${zona}`
-      };
+    const jdApprox = Math.floor(jdIjtimak + zona / 24 + 0.5) - 0.5;
+    let sunset = null;
+    for (let off = 0; off < 3; off++) {
+        const cek = [jdApprox, jdApprox + 1, jdApprox - 1][off];
+        const s = this.hitungTerbenam(cek, lintang, bujur, zona, elev);
+        if (s !== null) { sunset = s; break; }
     }
+    if (sunset === null) sunset = 18;
+    const jdGhurub = jdApprox + (sunset - zona) / 24;
+    let jamWGB = jamIjt - sunset;
+    const sunrise = this.hitungTerbit(jdApprox, lintang, bujur, zona, elev);
+
+    const posMat = this.posisiMatahari(jdGhurub);
+    const lst = this.waktuSiderealLokal(jdGhurub, bujur);
+    const horMat = this.ekuatorialKeHorizontal(posMat.ra, posMat.dec, lintang, lst);
+
+    const posBulan = this.bulanPosisiPenuh(jdGhurub);
+    const topo = this.bulanToposentrik(posBulan, lintang, elev, lst);
+    const horBulan = this.ekuatorialKeHorizontal(topo.ra, topo.dec, lintang, lst);
+    const horBulanGeo = this.ekuatorialKeHorizontal(posBulan.ra, posBulan.dec, lintang, lst);
+
+    const hcHakiki = horBulanGeo.tinggi, htTopo = horBulan.tinggi;
+    let refr = 0; if (hcHakiki > -5) { const ha = hcHakiki + 7.31 / (hcHakiki + 4.4); refr = ha > 0 ? 0.0167 / this.tanD(ha) : 0.575; }
+    const dip = elev > 0 ? (1.76 / 60) * Math.sqrt(elev) : 0;
+    const tinggiMari = htTopo + refr + dip;
+    const elong = this.acosD(this.sinD(posMat.dec) * this.sinD(posBulan.dec) + this.cosD(posMat.dec) * this.cosD(posBulan.dec) * this.cosD(posMat.ra - posBulan.ra));
+    const nurul = ((1 - this.cosD(elong)) / 2 * 100).toFixed(2);
+    const umur = 24 * (jdGhurub - jdIjtimak);
+    let lama = 0; if (horBulan.tinggi > 0) lama = horBulan.tinggi / 15;
+    const ijtSebelum = jdIjtimak < jdGhurub;
+
+    // ========== PENENTUAN IMRAN RUKYAT BERDASARKAN KRITERIA ==========
+    let imkan = false;
+    switch (kriteria) {
+        case '1': // Irtifa' 2°
+            imkan = (ijtSebelum && tinggiMari >= 2);
+            break;
+        case '2': // Irtifa' 2° dan Umur Hilal 6 jam
+            imkan = (ijtSebelum && tinggiMari >= 2 && umur >= 6);
+            break;
+        case '3': // Irtifa' 2° dan Umur Hilal 8 jam
+            imkan = (ijtSebelum && tinggiMari >= 2 && umur >= 8);
+            break;
+        case '4': // Irtifa' 3° dan Elongasi 6.4°
+            imkan = (ijtSebelum && tinggiMari >= 3 && elong >= 6.4);
+            break;
+        default:
+            imkan = (ijtSebelum && tinggiMari >= 3 && elong >= 6.4);
+    }
+
+    const jdAwal = imkan ? jdApprox + 1 + zona / 24 : jdApprox + 2 + zona / 24;
+    const tglAwal = this.jdKeTanggal(jdAwal);
+    const namaHari = ["Ahad", "Senin", "Selasa", "Rabu", "Kamis", "Jum'at", "Sabtu"];
+    const namaPasaran = ["Legi", "Pahing", "Pon", "Wage", "Kliwon"];
+    const namaBulanM = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const namaBulanH = ["", "Muharram", "Shafar", "Rabiul Awal", "Rabiul Akhir", "Jumadil Ula", "Jumadil Akhirah", "Rajab", "Sya'ban", "Ramadhan", "Syawwal", "Dzulqa'dah", "Dzulhijjah"];
+
+    return {
+        input: { blnH, thnH, lintang, bujur, elev, zona },
+        k, jdPerkiraan,
+        detailJDE, deltaT: deltaTVal, jdIjtimak,
+        ijtimak: { tgl: Math.floor(tglIjt.hari), bln: tglIjt.bulan, thn: tglIjt.tahun, jam: jamIjt, wgb: jamWGB, hari: namaHari[indHari < 0 ? indHari + 7 : indHari], pasaran: namaPasaran[indPasar < 0 ? indPasar + 5 : indPasar], jdIjtDate },
+        ghurub: { jdApprox, sunset, sunrise, jdGhurub },
+        matahari: { ra: posMat.ra, dec: posMat.dec, az: horMat.azimut, perata: posMat.perataMenit },
+        bulan: { ra: posBulan.ra, dec: posBulan.dec, az: horBulan.azimut, paralaks: posBulan.HP },
+        tinggi: { hcHakiki, htTopo, refraksi: refr, dip, tinggiMari },
+        elongasi: elong, nurulHilal: nurul, umurHilal: umur, lamaHilal: lama, kriteria: kriteria,
+        imkan: imkan,
+        awal: { hari: namaHari[Math.floor(jdAwal + 1.5) % 7], pasaran: namaPasaran[Math.floor(jdAwal + 0.5) % 5], tgl: Math.floor(tglAwal.hari), bln: tglAwal.bulan, thn: tglAwal.tahun, namaBulan: namaBulanM[tglAwal.bulan] },
+        namaBulanH: namaBulanH[blnH], zonaNama: zona === 7 ? "WIB" : zona === 8 ? "WITA" : zona === 9 ? "WIT" : `GMT+${zona}`
+    };
+}
 
     static hitungTerbenam(jd,lat,lon,tz,elev){
       const dip=elev>0?(1.76/60)*Math.sqrt(elev):0,h0=-(50/60+dip);
@@ -304,65 +325,64 @@ if (btnProsesHisabJM) {
 
   function desKeDMS(des){const s=des<0?-1:1,a=Math.abs(des);const d=Math.floor(a),m=Math.floor((a-d)*60),det=((a-d)*60-m)*60;return{d:s*d,m:s*m,s:s*det};}
     const hasil = HisabHilal.hitungAwalBulanLengkap(
-      bln, thn, lat.d, lat.m, lat.s, lon.d, lon.m, lon.s, tinggi, zona
+      bln, thn, lat.d, lat.m, lat.s, lon.d, lon.m, lon.s, tinggi, zona, kriteria
   );
 
   const d = hasil;
-  const vis = (d.tinggi.tinggiMari > 0 && d.elongasi > 6.4)
-      ? "Berpotensi Terlihat"
-      : "Sulit Teramati";
+  const vis = d.imkan ? "Berpotensi Terlihat" : "Sulit Teramati";
   const panel = document.getElementById("hasilHisabAkhirBulanJM");
 
     panel.innerHTML=`
     <div class="hisab-list">
-      <div class="row"><span>Julian Day (JD)</span><span>${d.jdPerkiraan.toFixed(4)}</span></div>
-      <div class="row"><span>Jumlah Konjungsi (k)</span><span>${d.k}</span></div>
+      <div class="row"><span>Koordinat</span><span>${latSet} LS || ${lonSet} BT</span></div>
+      <div class="row"><span>Altitude & Zona</span><span>${tinggi} M || GMT+${zona} WIB</span></div>
+      <div class="row"><span>Julian Day</span><span>${d.jdPerkiraan.toFixed(6)}</span></div>
+      <div class="row"><span>Jumlah Konjungsi</span><span>${d.k} kali Ijtimak</span></div>
     
-      <div class="row"><span>Adad Julian (T)</span><span>${d.detailJDE.T.toFixed(6)}</span></div>
-      <div class="row"><span>Julian Day Ephemeris (JDE)</span><span>${d.detailJDE.JDE_awal.toFixed(6)}</span></div>
-      <div class="row"><span>Anomali Matahari (M)</span><span>${d.detailJDE.M.toFixed(4)}°</span></div>
-      <div class="row"><span>Anomali Bulan (M')</span><span>${d.detailJDE.Maksen.toFixed(4)}°</span></div>
-      <div class="row"><span>Argumen Lintang (F)</span><span>${d.detailJDE.F.toFixed(4)}°</span></div>
-      <div class="row"><span>Bujur Node (Ω)</span><span>${d.detailJDE.Omega.toFixed(4)}°</span></div>
-      <div class="row"><span>Eksentrisitas (E)</span><span>${d.detailJDE.E.toFixed(6)}</span></div>
+      <div class="row"><span>Adad Julian</span><span>${d.detailJDE.T.toFixed(9)}</span></div>
+      <div class="row"><span>Julian Day Ephemeris</span><span>${d.detailJDE.JDE_awal.toFixed(6)}</span></div>
+      <div class="row"><span>Anomali Matahari</span><span>${d.detailJDE.M.toFixed(6)}°</span></div>
+      <div class="row"><span>Anomali Bulan </span><span>${d.detailJDE.Maksen.toFixed(6)}°</span></div>
+      <div class="row"><span>Argumen Lintang</span><span>${d.detailJDE.F.toFixed(6)}°</span></div>
+      <div class="row"><span>Bujur Node</span><span>${d.detailJDE.Omega.toFixed(6)}°</span></div>
+      <div class="row"><span>Eksentrisitas</span><span>${d.detailJDE.E.toFixed(9)}</span></div>
       <div class="row"><span>Koreksi A1</span><span>${d.detailJDE.detailKoreksi[1].nilai}</span></div>
-      <div class="row"><span>Koreksi A2</span><span>${d.detailJDE.detailKoreksi[1].nilai}</span></div>
-      <div class="row"><span>Koreksi A3</span><span>${d.detailJDE.detailKoreksi[2].nilai}</span></div>
-      <div class="row"><span>Koreksi A4</span><span>${d.detailJDE.detailKoreksi[3].nilai}</span></div>
-      <div class="row"><span>Koreksi A5</span><span>${d.detailJDE.detailKoreksi[4].nilai}</span></div>
-      <div class="row"><span>Koreksi A6</span><span>${d.detailJDE.detailKoreksi[5].nilai}</span></div>
-      <div class="row"><span>Koreksi A7</span><span>${d.detailJDE.detailKoreksi[6].nilai}</span></div>
-      <div class="row"><span>Koreksi A8</span><span>${d.detailJDE.detailKoreksi[7].nilai}</span></div>
-      <div class="row"><span>Koreksi A9</span><span>${d.detailJDE.detailKoreksi[8].nilai}</span></div>
-      <div class="row"><span>Koreksi A10</span><span>${d.detailJDE.detailKoreksi[9].nilai}</span></div>
-      <div class="row"><span>Koreksi A11</span><span>${d.detailJDE.detailKoreksi[10].nilai}</span></div>
-      <div class="row"><span>Koreksi A12</span><span>${d.detailJDE.detailKoreksi[11].nilai}</span></div>
-      <div class="row"><span>Koreksi A13</span><span>${d.detailJDE.detailKoreksi[12].nilai}</span></div>
-      <div class="row"><span>Koreksi A14</span><span>${d.detailJDE.detailKoreksi[13].nilai}</span></div>
-      <div class="row"><span>Koreksi A15</span><span>${d.detailJDE.detailKoreksi[14].nilai}</span></div>
-      <div class="row"><span>Total Koreksi Periodik</span><span>${d.detailJDE.totalKoreksi.toFixed(6)} hari</span></div>
+      <div class="row"><span>Koreksi A2</span><span>${d.detailJDE.detailKoreksi[2].nilai}</span></div>
+      <div class="row"><span>Koreksi A3</span><span>${d.detailJDE.detailKoreksi[3].nilai}</span></div>
+      <div class="row"><span>Koreksi A4</span><span>${d.detailJDE.detailKoreksi[4].nilai}</span></div>
+      <div class="row"><span>Koreksi A5</span><span>${d.detailJDE.detailKoreksi[5].nilai}</span></div>
+      <div class="row"><span>Koreksi A6</span><span>${d.detailJDE.detailKoreksi[6].nilai}</span></div>
+      <div class="row"><span>Koreksi A7</span><span>${d.detailJDE.detailKoreksi[7].nilai}</span></div>
+      <div class="row"><span>Koreksi A8</span><span>${d.detailJDE.detailKoreksi[8].nilai}</span></div>
+      <div class="row"><span>Koreksi A9</span><span>${d.detailJDE.detailKoreksi[9].nilai}</span></div>
+      <div class="row"><span>Koreksi A10</span><span>${d.detailJDE.detailKoreksi[10].nilai}</span></div>
+      <div class="row"><span>Koreksi A11</span><span>${d.detailJDE.detailKoreksi[11].nilai}</span></div>
+      <div class="row"><span>Koreksi A12</span><span>${d.detailJDE.detailKoreksi[12].nilai}</span></div>
+      <div class="row"><span>Koreksi A13</span><span>${d.detailJDE.detailKoreksi[13].nilai}</span></div>
+      <div class="row"><span>Koreksi A14</span><span>${d.detailJDE.detailKoreksi[14].nilai}</span></div>
+      <div class="row"><span>Koreksi Periodik</span><span>${d.detailJDE.totalKoreksi.toFixed(9)}<sup>h</sup></span></span></div>
       
-      <div class="row"><span>Koreksi Planet A1</span><span>${d.detailJDE.P1.toFixed(6)}</span></div>
-      <div class="row"><span>Koreksi Planet A2</span><span>${d.detailJDE.P2.toFixed(6)}</span></div>
-      <div class="row"><span>Koreksi Planet A3</span><span>${d.detailJDE.P3.toFixed(6)}</span></div>
-      <div class="row"><span>Koreksi Planet A4</span><span>${d.detailJDE.P4.toFixed(6)}</span></div>
-      <div class="row"><span>Koreksi Planet A5</span><span>${d.detailJDE.P5.toFixed(6)}</span></div>
-      <div class="row"><span>Koreksi Planet A6</span><span>${d.detailJDE.P6.toFixed(6)}</span></div>
-      <div class="row"><span>Koreksi Planet A7</span><span>${d.detailJDE.P7.toFixed(6)}</span></div>
-      <div class="row"><span>Koreksi Planet A8</span><span>${d.detailJDE.P8.toFixed(6)}</span></div>
-      <div class="row"><span>Koreksi Planet A9</span><span>${d.detailJDE.P9.toFixed(6)}</span></div>
-      <div class="row"><span>Koreksi Planet A10</span><span>${d.detailJDE.P10.toFixed(6)}</span></div>
-      <div class="row"><span>Koreksi Planet A11</span><span>${d.detailJDE.P11.toFixed(6)}</span></div>
-      <div class="row"><span>Koreksi Planet A12</span><span>${d.detailJDE.P12.toFixed(6)}</span></div>
-      <div class="row"><span>Koreksi Planet A13</span><span>${d.detailJDE.P13.toFixed(6)}</span></div>
-      <div class="row"><span>Koreksi Planet A14</span><span>${d.detailJDE.P14.toFixed(6)}</span></div>
-      <div class="row"><span>Total Koreksi Planet</span><span>${d.detailJDE.totalPlanet.toFixed(6)} hari</span></div>
+      <div class="row"><span>Koreksi P1</span><span>${d.detailJDE.P1.toFixed(9)}</span></div>
+      <div class="row"><span>Koreksi P2</span><span>${d.detailJDE.P2.toFixed(9)}</span></div>
+      <div class="row"><span>Koreksi P3</span><span>${d.detailJDE.P3.toFixed(9)}</span></div>
+      <div class="row"><span>Koreksi P4</span><span>${d.detailJDE.P4.toFixed(9)}</span></div>
+      <div class="row"><span>Koreksi P5</span><span>${d.detailJDE.P5.toFixed(9)}</span></div>
+      <div class="row"><span>Koreksi P6</span><span>${d.detailJDE.P6.toFixed(9)}</span></div>
+      <div class="row"><span>Koreksi P7</span><span>${d.detailJDE.P7.toFixed(9)}</span></div>
+      <div class="row"><span>Koreksi P8</span><span>${d.detailJDE.P8.toFixed(9)}</span></div>
+      <div class="row"><span>Koreksi P9</span><span>${d.detailJDE.P9.toFixed(9)}</span></div>
+      <div class="row"><span>Koreksi P10</span><span>${d.detailJDE.P10.toFixed(9)}</span></div>
+      <div class="row"><span>Koreksi P11</span><span>${d.detailJDE.P11.toFixed(9)}</span></div>
+      <div class="row"><span>Koreksi P12</span><span>${d.detailJDE.P12.toFixed(9)}</span></div>
+      <div class="row"><span>Koreksi P13</span><span>${d.detailJDE.P13.toFixed(9)}</span></div>
+      <div class="row"><span>Koreksi P14</span><span>${d.detailJDE.P14.toFixed(9)}</span></div>
+      <div class="row"><span>Koreksi Planet</span><span>${d.detailJDE.totalPlanet.toFixed(9)}<sup>h</sup></span></div>
       
-      <div class="row"><span>JDE Akhir</span><span>${d.detailJDE.JDE.toFixed(6)}</span></div>
-      <div class="row"><span>Delta (ΔT) </span><span>${d.deltaT} detik</span></div>
-      <div class="row"><span>JD Ijtimak (UT)</span><span>${d.jdIjtimak.toFixed(6)}</span></div>
+      <div class="row"><span>JDE Akhir</span><span>${d.detailJDE.JDE.toFixed(9)}</span></div>
+      <div class="row"><span>Delta</span><span>${d.deltaT}<sup>d</sup></span></div>
+      <div class="row"><span>JD Ijtimak</span><span>${d.jdIjtimak.toFixed(9)}</span></div>
     
-      <div class="row"><span>JD Ijtimak</span><span>${d.jdIjtimak.toFixed(6)}</span></div>
+      <div class="row"><span>JD Ijtimak</span><span>${d.jdIjtimak.toFixed(9)}</span></div>
       <div class="row"><span>Tanggal Ijtimak</span><span>${d.ijtimak.tgl} ${["","Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"][d.ijtimak.bln]} ${d.ijtimak.thn}</span></div>
       <div class="row"><span>Jam Ijtimak</span><span>${HisabHilal.keHMS(d.ijtimak.jam)} ${d.zonaNama}</span></div>
       <div class="row"><span>Hari Ijtima</span><span>${d.ijtimak.hari} ${d.ijtimak.pasaran}</span></div>
@@ -385,17 +405,21 @@ if (btnProsesHisabJM) {
       <div class="row"><span>Tinggi Mar'i</span><span>${HisabHilal.keDMS(d.tinggi.tinggiMari)}</span></div>
     
       <div class="row"><span>Elongasi</span><span>${HisabHilal.keDMS(d.elongasi)}</span></div>
-      <div class="row"><span>Nurul Hilal</span><span>${d.nurulHilal}%</span></div>
+      <div class="row"><span>Cahaya Hilal</span><span>${HisabHilal.keDMS(d.nurulHilal)}</span></div>
       <div class="row"><span>Umur Hilal</span><span>${HisabHilal.keHMS(d.umurHilal)}</span></div>
       <div class="row"><span>Lama Hilal</span><span>${d.lamaHilal>0?HisabHilal.keHMS(d.lamaHilal):'00:00:00'}</span></div>
-      <div class="row"><span>Ijtimak &lt; Ghurub</span><span>${d.ijtSebelumGhurub?'Ya':'Tidak'}</span></div>
-      <div class="row"><span>Tinggi ≥ 3°</span><span>${d.tinggi.tinggiMari>=3?'Ya':'Tidak'}</span></div>
-      <div class="row"><span>Elongasi ≥ 6.4°</span><span>${d.elongasi>=6.4?'Ya':'Tidak'}</span></div>
-      <div class="row"><span>Keputusan</span><span>${vis}</span></div>
+      <div class="row"><span>Kriteria Imkan Rukyat</span><span>${d.kriteria === '1' ? 'Irtifa\' 2°' : d.kriteria === '2' ? 'Irtifa\' 2° Umur Hilal 6 jam' : d.kriteria === '3' ? 'Irtifa\' 2° Umur Hilal 8 jam' : 'Irtifa\' 3° Elongasi 6.4°'}</span></div>
+      <div class="row"><span>Status Imkan</span><span>${d.imkan ? 'Terpenuhi' : 'Tidak Terpenuhi'}</span></div>
     <div class="ringkasan"><b>* RINGKASAN *</b></div>
       <div class="row"><span>Awal Bulan</span><span>${d.namaBulanH} ${d.input.thnH} H</span></div>
       <div class="row"><span>Jatuh Pada Hari</span><span>${d.awal.hari} ${d.awal.pasaran}, ${d.awal.tgl} ${d.awal.namaBulan} ${d.awal.thn} M</span></div>
-
+      <div class="row"><span>Ijtima Terjadi Pada</span><span>${d.ijtimak.hari} ${d.ijtimak.pasaran}, ${d.ijtimak.tgl} ${["","Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"][d.ijtimak.bln]} ${d.ijtimak.thn} M</span></div>
+      <div class="row"><span>Waktu Ijtimak</span><span>${HisabHilal.keHMS(d.ijtimak.jam)} ${d.zonaNama} || ${HisabHilal.keHMS(d.ijtimak.wgb)} WGB</span></div>
+      <div class="row"><span>Waktu Maghrib Saat Ijtima</span><span>${HisabHilal.keHMS(d.ghurub.sunset)} ${d.zonaNama}</span></div>
+      <div class="row"><span>Ketinggian Hilal Setelah Maghrib</span><span>${HisabHilal.keDMS(d.tinggi.tinggiMari)}</span></div>
+      <div class="row"><span>Lama Hilal di atas Ufuq setelah Ghurub</span><span>${d.lamaHilal>0?HisabHilal.keHMS(d.lamaHilal):'00:00:00'}</span></div>
+      <div class="row"><span>Elongasi</span><span>${d.elongasi.toFixed(2)}</span></div>
+      
   </div>
     `;
     panelHisab.classList.add('hidden');

@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Altitude
   function updateAltitudeUI() {
-    if (altitudeValue) altitudeValue.innerText = settings.altitude + ' MDPL';
+    if (altitudeValue) altitudeValue.innerText = settings.altitude + ' M';
     if (altitudeStatus) altitudeStatus.innerText = settings.useAltitude ? 'Aktif' : 'Nonaktif';
   }
   
