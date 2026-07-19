@@ -1,4 +1,4 @@
-/* JEAN MEEUS */
+// JEAN MEEUS 
 const panelHasilHisabJM = document.getElementById("panelHasilHisabJM");
 const btnProsesHisabJM = document.getElementById("btnProsesHisabJM");
 const btnBackToIjtimaJM = document.getElementById("btnBackToIjtimaJM");
@@ -337,7 +337,7 @@ if (btnProsesHisabJM) {
       <div class="row"><span>Koordinat</span><span>${latSet} LS || ${lonSet} BT</span></div>
       <div class="row"><span>Altitude & Zona</span><span>${tinggi} M || GMT+${zona} WIB</span></div>
       <div class="row"><span>Julian Day</span><span>${d.jdPerkiraan.toFixed(6)}</span></div>
-      <div class="row"><span>Jumlah Konjungsi</span><span>${d.k} kali Ijtimak</span></div>
+      <div class="row"><span>Jumlah Konjungsi</span><span>${d.k} Kali Ijtimak</span></div>
     
       <div class="row"><span>Adad Julian</span><span>${d.detailJDE.T.toFixed(9)}</span></div>
       <div class="row"><span>Julian Day Ephemeris</span><span>${d.detailJDE.JDE_awal.toFixed(6)}</span></div>
