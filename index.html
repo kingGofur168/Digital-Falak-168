@@ -227,27 +227,25 @@
 
 <div id="panelHisab" class="hisab-panel hidden">
     <div class="hisab-header">
-        <h3>Hisab Ijtima</h3>
+        <h3>Input Hisab</h3>
         <button id="closeHisab" class="btn-close">
             <i class="bi bi-x"></i>
         </button>
     </div>
     
     <div class="hisab-tabs">
-        <button class="tab active">SULAM</button>
-        <button class="tab">F-ROUF</button>
-        <button class="tab">JEAN-M</button>
+        <button class="tab active">IJTIMA</button>
     </div>
     
-    <!-- Konten Ijtima Sulamun Nayirein-->
+    <!-- Konten Ijtima -->
     <div class="hisab-content" id="hisabAkhirBulan">
         <div class="field">
             <label>Tahun</label>
-            <input type="number" value="1448" id="kst">
+            <input type="number" value="1448" id="inputIjtimaTahun">
         </div>
         <div class="field">
             <label>Bulan</label>
-            <select id='bulanhijriyah'>
+            <select id='inputIjtimaBulan'>
                 <option value="1">01. Muharram</option>
                 <option value="2">02. Shafar</option>
                 <option value="3">03. Rabiul Awal</option>
@@ -263,85 +261,23 @@
             </select>
         </div>
         <div class="field">
-            <label>Irtifa'</label>
-            <select id='derajatirtipa'>
-                <option value="1">2°</option>
-                <option value="2">3°</option>
-                <option value="3">6°</option>
-                <option value="4">7°</option>
-            </select>
-        </div>
-        <button class="btn-process" id="btnProsesHisab">PROSES</button>
-    </div>
-    
-    <!-- Konten Ijtima Fathur Rouf-->
-    <div class="hisab-content" id="hisabAkhirBulanFR">
-        <div class="field">
-            <label>Tahun</label>
-            <input type="number" value="1448" id="kstFR">
-        </div>
-        <div class="field">
-            <label>Bulan</label>
-            <select id='bulanhijriyahFR'>
-                <option value="1">01. Muharram</option>
-                <option value="2">02. Shafar</option>
-                <option value="3">03. Rabiul Awal</option>
-                <option value="4">04. Rabiul Akhir</option>
-                <option value="5">05. Jumadil Awal</option>
-                <option value="6">06. Jumadil Akhir</option>
-                <option value="7">07. Rajab</option>
-                <option value="8">08. Sya'ban</option>
-                <option value="9" selected>09. Ramadhan</option>
-                <option value="10">10. Syawal</option>
-                <option value="11">11. Dzulqa'dah</option>
-                <option value="12">12. Dzulhijjah</option>
-            </select>
-        </div>
-        <div class="field">
-            <label>Irtifa'</label>
-            <select id='drjIFR'>
-                <option value="1">2°</option>
-                <option value="2">3°</option>
-                <option value="3">6°</option>
-                <option value="4">7°</option>
-            </select>
-        </div>
-        <button class="btn-process" id="btnProsesHisabFR">PROSES</button>
-    </div>
-    
-    <!-- Konten Ijtima Jean Meeus-->
-    <div class="hisab-content" id="hisabAkhirBulanJM">
-        <div class="field">
-            <label>Tahun</label>
-            <input type="number" value="1448" id="kstJM">
-        </div>
-        <div class="field">
-            <label>Bulan</label>
-            <select id='bulanhijriyahJM'>
-                <option value="1">01. Muharram</option>
-                <option value="2">02. Shafar</option>
-                <option value="3">03. Rabiul Awal</option>
-                <option value="4">04. Rabiul Akhir</option>
-                <option value="5">05. Jumadil Awal</option>
-                <option value="6">06. Jumadil Akhir</option>
-                <option value="7">07. Rajab</option>
-                <option value="8">08. Sya'ban</option>
-                <option value="9" selected>09. Ramadhan</option>
-                <option value="10">10. Syawal</option>
-                <option value="11">11. Dzulqa'dah</option>
-                <option value="12">12. Dzulhijjah</option>
-            </select>
-        </div>
-        <div class="field">
-            <label>Irtifa'</label>
-            <select id='diJM'>
+            <label>Kriteria Imkan Rukyat'</label>
+            <select id='inputIjtimaIrtifa'>
                 <option value="1">2°</option>
                 <option value="2">2° Umur hilal 6 jam</option>
-                <option value="3">2° Umur hilal 8 jam</option>
-                <option value="4" selected>3° Elongasi 6.4 (Default)</option>
+                <option value="3" selected>2° Umur hilal 8 jam</option>
+                <option value="4">3° Elongasi 6.4 (Default)</option>
             </select>
         </div>
-        <button class="btn-process" id="btnProsesHisabJM">PROSES</button>
+        <div class="field">
+            <label>Metode</label>
+            <select id='inputIjtimaMetode'>
+                <option value="sn">Sulamu an-Nayirein</option>
+                <option value="fr">Fathu ar-Rouf Al-Mannan</option>
+                <option value="jm">Jean Meeus</option>
+            </select>
+        </div>
+        <button class="btn-process" id="btnProsesHisabIjtima">PROSES</button>
     </div>
     
 </div>
@@ -436,10 +372,6 @@
             <label>Tahun</label>
             <input type="number" id="inputTahunHM" value="1447">
         </div>
-        <div class="field">
-            <label>Metode</label>
-            <span>Hisab Istilahi</span>
-        </div>
         <button class="btn-process" id="btnProsesKonversiH_M">PROSES</button>
     </div>
     
@@ -469,10 +401,6 @@
         <div class="field">
             <label>Tahun</label>
             <input type="number" id="inputTahunMH" value="2026">
-        </div>
-        <div class="field">
-            <label>Metode</label>
-            <span>Hisab Istilahi</span>
         </div>
         <button class="btn-process" id="btnProsesKonversiM_H">PROSES</button>
     </div>
@@ -565,33 +493,9 @@
         <button id="btnBackToIjtima" class="back-btn">
             <i class="bi bi-arrow-left"></i>
         </button>
-        <h3>Sulamu an-Nayirein</h3>
+        <h3>Hasil Hisab</h3>
     </div>
-    <div class="card hisab-content">
-        <div class="hasil-row" id="hasilHisabAkhirBulan"></div>
-    </div>
-</div>
-<div id="panelHasilHisabFR" class="hisab-panel hidden">
-    <div class="hisab-header">
-        <button id="btnBackToIjtimaFR" class="back-btn">
-            <i class="bi bi-arrow-left"></i>
-        </button>
-        <h3>Fathu ar-Rouf</h3>
-    </div>
-    <div class="card hisab-content">
-        <div class="hasil-row" id="hasilHisabAkhirBulanFR"></div>
-    </div>
-</div>
-<div id="panelHasilHisabJM" class="hisab-panel hidden">
-    <div class="hisab-header">
-        <button id="btnBackToIjtimaJM" class="back-btn">
-            <i class="bi bi-arrow-left"></i>
-        </button>
-        <h3>Jean Meeus</h3>
-    </div>
-    <div class="card hisab-content">
-        <div class="hasil-row" id="hasilHisabAkhirBulanJM"></div>
-    </div>
+    <div class="hasil-row" id="hasilHisabAkhirBulan"></div>
 </div>
 
 <!-- Menu Lainnya - Download -->
@@ -644,11 +548,11 @@
 </div>
 
 <script src="js/main.js"></script>
-<script src="js/menu-hisab/jean-meeus.js"></script>
 <script src="js/menu-settings.js"></script>
+<script src="js/sn.js"></script>
+<script src="js/fr.js"></script>
+<script src="js/jm.js"></script>
 <script src="js/menu-hisab.js"></script>
-<script src="/js/menu-hisab/sulam.js"></script>
-<script src="/js/menu-hisab/fathur-rouf.js"></script>
 <script src="js/menu-kalkulator.js"></script>
 <script src="js/menu-lainnya.js"></script>
 <script src="js/menu-menu-waktu-shalat.js"></script>

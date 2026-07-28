@@ -275,14 +275,14 @@ const updateSholatUI = j => Object.keys(j).forEach(k => {
 // ==========================================
 function getNextSholat(jadwal) {
   const urutan = [
+  { id: 'imsak', label: 'Imsak' },
   { id: 'subuh', label: 'Subuh' },
   { id: 'terbit', label: 'Terbit' },
   { id: 'dhuha', label: 'Dhuha' },
   { id: 'dzuhur', label: 'Dzuhur' },
   { id: 'ashar', label: 'Ashar' },
   { id: 'maghrib', label: 'Maghrib' },
-  { id: 'isya', label: 'Isya' },
-  { id: 'imsak', label: 'Imsak' } // setelah Isya, sebelum Subuh
+  { id: 'isya', label: 'Isya' }
 ];
 
   const now = new Date();
@@ -452,7 +452,6 @@ HARI BESAR ISLAM (TANGGAL HIJRIYAH - TETAP)
 */
 
 // ========== DATA HARI LIBUR ==========
-// ========== DATA HARI LIBUR ==========
 const islamicHolidaysHijri = [
     { month: 1, day: 1, name: 'Tahun Baru Islam' },
     { month: 1, day: 10, name: 'Hari Asyura' },
@@ -480,18 +479,18 @@ const islamicToNational = {
 // Mapping hari Islam ke libur nasional
 };
 
-// ========== STATE SETTING ==========
+// STATE SETTING
 let calendarSettings = {
     nationalHoliday: true,
     islamicHoliday: true
 };
 
-// ========== FORMAT TANGGAL ==========
+// FORMAT TANGGAL
 function formatDateString(year, month, day) {
     return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
-// ========== GET NATIONAL HOLIDAYS UNTUK TAHUN TERTENTU ==========
+// GET NATIONAL HOLIDAYS UNTUK TAHUN TERTENTU
 function getNationalHolidays(year) {
     const result = {};
     

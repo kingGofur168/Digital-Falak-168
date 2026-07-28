@@ -726,7 +726,7 @@ body.light .btn-process {
 .hasil-row {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
   margin-top: 10px;
 }
 
@@ -799,28 +799,27 @@ body.light .kalkulator-tabs .tab.active {
   color: #666;
 }
 
-.ringkasan{
-  text-align: center;
-  margin-top: 20px;
-  margin-bottom: 10px;
-}
-
 .hisab-list .row {
   display:flex;
   justify-content:space-between;
-  padding:6px 0;
+  padding: 4px 6px;
+  border-bottom:1px solid #222;
+  font-size:13px;
+  color: var(--muted);
+}
+.hisab-list .tbl {
+  font-weight: 600;
+  display:flex;
+  justify-content:space-between;
+  padding: 4px 6px;
   border-bottom:1px solid #222;
   font-size:13px;
 }
-
-.hisab-list .kelompok {
+.sub {
   text-align: center;
-  border-bottom:1px solid #222;
-  font-size:14px;
-  font-weight: 600;
-  padding:6px 0;
+  font-weight: 700;
+  margin: 10px 0px;
 }
-
 .lainnya-icons {
     display: flex;
     gap: 2px;
