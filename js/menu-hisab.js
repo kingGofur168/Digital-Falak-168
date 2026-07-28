@@ -333,7 +333,7 @@ function prosesHisab() {
     switch (data.metode) {
 
         case "sn":
-            hasil = hisabSulam(data);
+            hasil = hisabSN(data);
             break;
 
         case "fr":

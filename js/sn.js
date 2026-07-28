@@ -1,9 +1,9 @@
-function hisabSulam(data) {
+function hisabSN(data) {
   
   const bulanList = ["Muharom", "Sopar", "Robiul Awal", "Robiul Akhir", "Jumadil Awal", "Jumadil Akhir", "Rojab", "Sya'ban", "Romadhon", "Syawal", "Dzul Qo'dah", "Dzul Hijjah"];
   const hariList = ["Sabtu", "Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jum'at"];
   
-  let lon = data.longitude, lat = data.longitude;
+  let lat = data.latitude, lon = data.longitude;
   let tmb = data.tahun % 10, tmj = data.tahun - tmb, bulan = data.bulan, kriteria = data.kriteria;
   let aj = (18.647 + ((tmj - 1500) / 10) * 40.083) % 168; if (aj < 0) aj += 168;
   let hj = (202.050 + ((tmj - 1500) / 10) * 80.5) % 360; if (hj < 0) hj += 360;
@@ -77,11 +77,13 @@ function hisabSulam(data) {
   const hm = (syarat, ii) => hariList[(ii + (syarat ? 0 : 1)) % 7];
 
   let hmab  = hm(ih >= 2, ii),             
-      hmab2 = hm(ih >= 2 && mig >= 6, ii), 
+      hmab2 = hm(ih >= 3, ii), 
       hmab3 = hm(ih >= 2 && mig >= 8, ii),
       hmab4 = hm(ih >= 3 && elongasi >= 6.4, ii);
   let jthab;
   if (kriteria <= 1) {jthab = hmab;} else if (kriteria <= 2) {jthab = hmab2;} else if (kriteria <= 3) {jthab = hmab3;} else {jthab = hmab4;}
+  let sk;
+  if (kriteria <= 1) {sk = '2°';} else if (kriteria <= 2) {sk = '3°';} else if (kriteria <= 3) {sk = '2°, Umur Hilal 8 Jam';} else {sk = '3°, Elongasi 6.4';}
   let sORm = jig <= 12 ? "Malam" : "Hari";
 
     return {
@@ -90,14 +92,6 @@ function hisabSulam(data) {
 
         html: `
             <div class="hisab-list">
-                <div class="row">
-                    <span>Konversi</span>
-                    <span>${data.tanggal} ${data.namaBulanMasehi} ${data.tahunMasehi}</span>
-                </div>
-                <div class="row">
-                    <span>Waktu</span>
-                    <span>${keJMS(data.maghrib)} </span>
-                </div>
                 <div class="row">
                     <span>1. Majmuah al-Khosshoh (${tmj})</span>
                     <span>${keBurujDMS(kj)}</span>
@@ -263,7 +257,7 @@ function hisabSulam(data) {
                 </div>                
                 <div class="tbl">
                     <span>Jatuh Pada Hari</span>
-                    <span>${jthab} ${data.pasaran}, ${data.tanggal} ${data.namaBulanMasehi} ${data.tahunMasehi} H</span>
+                    <span>${jthab} ${data.pasaran}, ${data.tanggal} ${data.namaBulanMasehi} ${data.tahunMasehi} M</span>
                 </div>                
                 <div class="tbl">
                     <span>Ijtima Terjadi Pada</span>
@@ -288,6 +282,18 @@ function hisabSulam(data) {
                 <div class="tbl">
                     <span>Elongasi</span>
                     <span>${keDMS(elongasi)}</span>
+                </div>
+                <div class="tbl">
+                    <span>Kriteria Imkan Rukyat</span>
+                    <span>${sk}</span>
+                </div>
+                <div class="tbl">
+                    <span>Waktu Maghrib Setelah Ijtima</span>
+                    <span>${keJMS(data.maghrib)}</span>
+                </div>
+                <div class="tbl">
+                    <span>Koordinat</span>
+                    <span>${keDMS(lat)} || ${keDMS(lon)}</span>
                 </div>
                 
             </div>
