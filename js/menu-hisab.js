@@ -118,6 +118,18 @@ function keJMS(nilai) {
 
     return `${String(j).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(d).padStart(2,'0')}`;
 }
+// DESIMAL JAM → JAM MENIT DETIK (+/-)
+function keJMSSelisih(nilai) {
+    const isMinus = nilai < 0;
+    nilai = Math.abs(nilai);
+    const j = Math.floor(nilai);
+    const mFloat = (nilai - j) * 60;
+    const m = Math.floor(mFloat);
+    const d = Math.round((mFloat - m) * 60);
+    const tanda = isMinus ? "-" : "";
+    return `${tanda}${String(j).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(d).padStart(2,'0')}`;
+}
+
 
 // KONVERSI HIJRI → MASEHI
 function hijriKeMasehi(tahun, bulan) {

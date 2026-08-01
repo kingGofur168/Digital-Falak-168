@@ -202,7 +202,7 @@ function hisabSN(data) {
                 </div>
                 <div class="row">
                     <span>28. Saatu Fadl al-Thulain</span>
-                    <span>${keJMS(sft)}</span>
+                    <span>${keJMSSelisih(sft)}</span>
                 </div>
                 <div class="tbl">
                     <span>29. Alamah Muadalah Lokal</span>
