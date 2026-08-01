@@ -808,7 +808,7 @@ body.light .kalkulator-tabs .tab.active {
   color: var(--muted);
 }
 .hisab-list .tbl {
-  font-weight: 600;
+  font-weight: 450;
   display:flex;
   justify-content:space-between;
   padding: 4px 6px;
