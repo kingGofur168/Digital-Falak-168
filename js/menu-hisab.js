@@ -24,8 +24,9 @@ overlayHisab.onclick  = closeHisabPanel;
 btnCloseHisab.onclick = closeHisabPanel;
 
 const tabs = document.querySelectorAll('.hisab-tabs .tab');
-const inputIjtima   = document.getElementById('hisabAkhirBulan');
-const contents = [inputIjtima];
+const inputIjtima = document.getElementById('hisabAkhirBulan');
+const inputWS = document.getElementById('hisabWaktuShalat');
+const contents = [inputIjtima, inputWS];
 
 tabs.forEach((tab, index) => {
   tab.onclick = () => {

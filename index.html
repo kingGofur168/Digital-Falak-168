@@ -235,6 +235,8 @@
     
     <div class="hisab-tabs">
         <button class="tab active">IJTIMA</button>
+        <button class="tab">WAKTU SHALAT</button>
+        <button class="tab">GERHANA</button>
     </div>
     
     <!-- Konten Ijtima -->
@@ -278,6 +280,38 @@
             </select>
         </div>
         <button class="btn-process" id="btnProsesHisabIjtima">PROSES</button>
+    </div>
+    <div class="hisab-content" id="hisabWaktuShalat">
+        <div class="field">
+            <label>Tahun Masehi</label>
+            <input type="number" value="2026" id="inputWSTahun">
+        </div>
+        <div class="field">
+            <label>Bulan Hijriyah</label>
+            <select id='inputWSBulan'>
+                <option value="1">01. Januari</option>
+                <option value="2">02. Februari</option>
+                <option value="3">03. Maret</option>
+                <option value="4">04. April</option>
+                <option value="5">05. Mei</option>
+                <option value="6">06. Juni</option>
+                <option value="7">07. Juli</option>
+                <option value="8">08. Agustus</option>
+                <option value="9">09. September</option>
+                <option value="10">10. Oktober</option>
+                <option value="11">11. November</option>
+                <option value="12">12. Desember</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>Tanggal</label>
+              <input type="number" value="1" id="inputWSTanggal">
+        </div>
+        <div class="field">
+            <label>Time Zone</label>
+              <input type="number" value="7" id="inputWSTZ">
+        </div>
+        <button class="btn-process" id="btnProsesWS">PROSES</button>
     </div>
     
 </div>
@@ -497,6 +531,15 @@
     </div>
     <div class="hasil-row" id="hasilHisabAkhirBulan"></div>
 </div>
+<div id="panelHasilHisabWS" class="hisab-panel hidden">
+    <div class="hisab-header">
+        <button id="btnBackToWS" class="back-btn">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+        <h3>Hasil Hisab</h3>
+    </div>
+    <div class="hasil-row" id="hasilHisabWS"></div>
+</div>
 
 <!-- Menu Lainnya - Download -->
 <div id="panelMenuDownload" class="hisab-panel hidden">
@@ -533,10 +576,6 @@
         <i class="bi bi-moon-fill"></i>
         <br>Hisab
     </div>
-    <div class="menu" id="menu-hisabWS">
-        <i class="bi bi-sun-fill"></i>
-        <br>Waktu Sholat
-    </div>
     <div class="menu" id="menu-kalkulator">
         <i class="bi bi-calculator-fill"></i>
         <br>Kalkulator
@@ -552,6 +591,7 @@
 <script src="js/sn.js"></script>
 <script src="js/fr.js"></script>
 <script src="js/jm.js"></script>
+<script src="js/ws.js"></script>
 <script src="js/menu-hisab.js"></script>
 <script src="js/menu-kalkulator.js"></script>
 <script src="js/menu-lainnya.js"></script>
