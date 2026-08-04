@@ -97,198 +97,251 @@ if (btnProsesWS) {
       return r2d(Math.acos(arg)) / 15;
     };
     
-    let tMaghrib = hitungBusur(-0.833);
-    let tIsya = hitungBusur(-18);
-    let tSubuh = hitungBusur(-20);
-    let tTerbit = hitungBusur(-0.833);
-    let tDhuha = hitungBusur(4.5);
-    
     let z = Math.tan(d2r(Math.abs(φ - δ)));
-    let hAshar = r2d(Math.atan(1 / (1 + z)));
-    let tAshar = hitungBusur(hAshar);
+    let tAshar = r2d(Math.atan(1 / (1 + z)));
+    let tMT = -0.833;
+    let tIsya = -18;
+    let tShubuh = -20;
+    let tDhuha = 4.5;
+    
+    let hAshar = hitungBusur(tAshar);
+    let hMaghrib = hitungBusur(tMT);
+    let hIsya = hitungBusur(tIsya);
+    let hShubuh = hitungBusur(tShubuh);
+    let hTerbit = hitungBusur(tMT);
+    let hDhuha = hitungBusur(tDhuha);
     
     // =====================
     // WAKTU SHOLAT 
     // =====================
-    let subuh = zawal - tSubuh + ihtiyat;
-    let terbit = zawal - tTerbit - ihtiyat;
-    let dhuha = zawal - tDhuha + ihtiyat;
+    let shubuh = zawal - hShubuh + ihtiyat;
+    let terbit = zawal - hTerbit - ihtiyat;
+    let dhuha = zawal - hDhuha + ihtiyat;
     let dzuhur = zawal + ihtiyat;
-    let ashar = zawal + tAshar + ihtiyat;
-    let maghrib = zawal + tMaghrib + ihtiyat;
-    let isya = zawal + tIsya + ihtiyat;
+    let ashar = zawal + hAshar + ihtiyat;
+    let maghrib = zawal + hMaghrib + ihtiyat;
+    let isya = zawal + hIsya + ihtiyat;
     
 
 hasilHisabWS.innerHTML = `
 <div class="hisab-list">
   <div class="row">
-    <span>D-Y-M</span>
+    <span>Tanggal Masehi</span>
     <span>${tanggal}-${bulan}-${tahun}</span>
   </div>
   <div class="row">
-    <span>Latitude (φ)</span>
+    <span>Lintang Tempat (φ)</span>
     <span>${toDMS(φ)}</span>
   </div>
   <div class="row">
-    <span>Longitude (λ)</span>
+    <span>Bujur Tempat (λ)</span>
     <span>${toDMS(λ)}</span>
   </div>
   <div class="row">
-    <span>Ihtiyath (+WS)</span>
+    <span>Ihtiyath (++)</span>
     <span>${toHMS(ihtiyat)}</span>
   </div>
- </div>
+</div>
+
 <div class="hisab-list">
   <div class="row">
-    <span>Logika (Y)</span>
+    <span>Tahun Perhitungan (Y)</span>
     <span>${y}</span>
   </div>
   <div class="row">
-    <span>Logika (M)</span>
+    <span>Bulan Perhitungan (M)</span>
     <span>${m}</span>
   </div>
   <div class="row">
-    <span>Jumlah Abad (A100)</span>
+    <span>Abad (A)</span>
     <span>${A}</span>
   </div>
   <div class="row">
-    <span>Jumlah Siklus (A400)</span>
+    <span>Kabisat Abad (A/4)</span>
     <span>${A2}</span>
   </div>
   <div class="tbl">
-    <span>Koreksi Abad (B)</span>
+    <span>Koreksi Gregorian (B)</span>
     <span>${B}</span>
   </div>
   <div class="row">
-    <span>Pergeseran Titik Awal (X1)</span>
+    <span>Tahun Julian Dasar</span>
     <span>${x1}</span>
   </div>
   <div class="row">
-    <span>Konversi Tahun ke Hari (X2)</span>
+    <span>Akumulasi Hari dari Tahun</span>
     <span>${x2}</span>
   </div>
   <div class="row">
-    <span>Pergeseran Indeks Bulan (X3)</span>
+    <span>Indeks Bulan Julian</span>
     <span>${x3}</span>
   </div>
   <div class="row">
-    <span>Akumulasi Hari per Bulan (X4)</span>
+    <span>Akumulasi Hari dari Bulan</span>
     <span>${x4}</span>
   </div>
   <div class="row">
-    <span>Penyelarasan Akhir (X5)</span>
+    <span>Komponen Tanggal Julian</span>
     <span>${x5}</span>
   </div>
   <div class="tbl">
-    <span>Hari Julian (JD)</span>
+    <span>Julian Day (JD)</span>
     <span>${JD}</span>
   </div>
   <div class="row">
-    <span>Zaman Julian (T)</span>
+    <span>Julian Century (T)</span>
     <span>${T.toFixed(8)}</span>
   </div>
   <div class="row">
-    <span>Bujur rata-rata Matahari (L₀)</span>
+    <span>Bujur Rata-rata Matahari (L₀)</span>
     <span>${toDMS(L0)}</span>
   </div>
-  
   <div class="row">
-    <span>Anomali Matahari (M)</span>
-    <span>${(M)}</span>
+    <span>Anomali Rata-rata Matahari (M)</span>
+    <span>${M}</span>
   </div>
-  
   <div class="row">
     <span>Persamaan Pusat Matahari (C)</span>
     <span>${toDMS(C)}</span>
   </div>
-  
   <div class="tbl">
-    <span>Tinggi Matahari Haqiqi (λ)</span>
+    <span>Bujur Sebenarnya Matahari (λ)</span>
     <span>${toDMS(λ_matahari)}</span>
   </div>
-
   <div class="row">
-    <span>Mail Awal (ε)</span>
+    <span>Kemiringan Ekliptika (ε)</span>
     <span>${toDMS(ε)}</span>
   </div>
-  
   <div class="tbl">
-    <span>Mail Haqiqi (δ)</span>
+    <span>Deklinasi Matahari (δ)</span>
     <span>${toDMS(δ)}</span>
   </div>
   <div class="row">
-    <span>E1</span>
-    <span>${menitKeMS(E1)}</span>
+    <span>tan²(ε/2)</span>
+    <span>${E1.toFixed(6)}</span>
   </div>
   <div class="row">
-    <span>E2</span>
-    <span>${menitKeMS(E2)}</span>
+    <span>sin(2L₀)</span>
+    <span>${E2.toFixed(6)}</span>
   </div>
   <div class="row">
-    <span>Selisih Menit (E)</span>
+    <span>Perata Waktu (E)</span>
     <span>${menitKeMS(E)}</span>
   </div>
   <div class="tbl">
-    <span>Zawal Syamsi (Dzuhur)</span>
+    <span>Waktu Zawal</span>
     <span>${toHMS(zawal)}</span>
   </div>
   <div class="row">
-    <span>Irtfa' Ashar</span>
-    <span>${toDMS(hAshar)}</span>
+    <span>Selisih Lintang & Deklinasi</span>
+    <span>${toDMS(z)}</span>
+  </div>
+  <div class="tbl">
+    <span>irtifa' Ashar (T?)</span>
+    <span>${toDMS(tAshar)}</span>
   </div>
   <div class="row">
-    <span>tMaghrib</span>
-    <span>${toDMS(tMaghrib)}</span>
+    <span>Jarak Ashar (HA)</span>
+    <span>${toHMS(hAshar)}</span>
+  </div>
+  <div class="tbl">
+    <span>Waktu Ashar</span>
+    <span>${toHMS(ashar)}</span>
   </div>
   <div class="row">
-    <span>tIsya</span>
+    <span>irtifa' Maghrib & Terbit (T0.833)</span>
+    <span>${toDMS(tMT)}</span>
+  </div>
+  <div class="row">
+    <span>Jarak Maghrib (HM)</span>
+    <span>${toHMS(hMaghrib)}</span>
+  </div>
+  <div class="tbl">
+    <span>Waktu Maghrib</span>
+    <span>${toHMS(maghrib)}</span>
+  </div>
+  <div class="row">
+    <span>Jarak Terbit (HT)</span>
+    <span>${toHMS(hTerbit)}</span>
+  </div>
+  <div class="tbl">
+    <span>Waktu Terbit</span>
+    <span>${toHMS(terbit)}</span>
+  </div>
+  <div class="row">
+    <span>irtifa' Isya (T-18)</span>
     <span>${toDMS(tIsya)}</span>
   </div>
   <div class="row">
-    <span>tSubuh</span>
-    <span>${toDMS(tSubuh)}</span>
+    <span>Jarak Isya (HI)</span>
+    <span>${toHMS(hIsya)}</span>
+  </div>
+  <div class="tbl">
+    <span>Waktu Isya</span>
+    <span>${toHMS(isya)}</span>
   </div>
   <div class="row">
-    <span>tTerbit</span>
-    <span>${toDMS(tTerbit)}</span>
+    <span>irtifa' Shubuh (T-20)</span>
+    <span>${toDMS(tShubuh)}</span>
+  </div>
+  <div class="row">
+    <span>Jarak Shubuh (HS)</span>
+    <span>${toHMS(hShubuh)}</span>
+  </div>
+  <div class="tbl">
+    <span>Waktu Shubuh</span>
+    <span>${toHMS(shubuh)}</span>
+  </div>
+  <div class="row">
+    <span>irtifa' Dhuha (T4.5)</span>
+    <span>${toDMS(tDhuha)}</span>
+  </div>
+  <div class="row">
+    <span>Jarak Dhuha (HD)</span>
+    <span>${toHMS(hDhuha)}</span>
+  </div>
+  <div class="tbl">
+    <span>Waktu Dhuha</span>
+    <span>${toHMS(hDhuha)}</span>
   </div>
 </div>
+
+<span class="sub">Walhasil</span>
 <div class="hisab-list">
-  <div class="row">
-    <span>Subuh</span>
-    <span>${toHMS(subuh)}</span>
+  <div class="tbl">
+    <span>Shubuh</span>
+    <span>${toHMS(shubuh)}</span>
   </div>
-  
-  <div class="row">
+
+  <div class="tbl">
     <span>Terbit</span>
     <span>${toHMS(terbit)}</span>
   </div>
-  
-  <div class="row">
+
+  <div class="tbl">
     <span>Dhuha</span>
     <span>${toHMS(dhuha)}</span>
   </div>
-  
-  <div class="row">
+
+  <div class="tbl">
     <span>Dzuhur</span>
     <span>${toHMS(dzuhur)}</span>
   </div>
-  
-  <div class="row">
+
+  <div class="tbl">
     <span>Ashar</span>
     <span>${toHMS(ashar)}</span>
   </div>
-  
-  <div class="row">
+
+  <div class="tbl">
     <span>Maghrib</span>
     <span>${toHMS(maghrib)}</span>
   </div>
-  
-  <div class="row">
+
+  <div class="tbl">
     <span>Isya</span>
     <span>${toHMS(isya)}</span>
   </div>
-  
 </div>
 `;
     
