@@ -1,162 +1,26 @@
 function hisabJM(data) {
-    let bln = data.bulan;
-    let thn = data.tahun;
-    let tinggi = data.altitude;
-    let kriteria = data.kriteria; 
-    let latSet = data.latitude, lonSet = data.longitude, zona = 7, lat = desKeDMS(latSet),lon=desKeDMS(lonSet);
-    
-  class HisabHilal {
-    static d2r = Math.PI/180;
-    static r2d = 180/Math.PI;
-    static sinD(d) { return Math.sin(d*this.d2r); }
-    static cosD(d) { return Math.cos(d*this.d2r); }
-    static tanD(d) { return Math.tan(d*this.d2r); }
-    static asinD(v) { return Math.asin(v)*this.r2d; }
-    static acosD(v) { return Math.acos(Math.max(-1,Math.min(1,v)))*this.r2d; }
-    static atan2D(y,x) { return Math.atan2(y,x)*this.r2d; }
-    static norm(a) { return a-360*Math.floor(a/360); }
-
-    static tanggalKeJD(thn, bln, hari) {
-      if(bln<=2){thn--;bln+=12;}
-      const A=Math.floor(thn/100), B=2-A+Math.floor(A/4);
-      return Math.floor(365.25*(thn+4716))+Math.floor(30.6001*(bln+1))+hari+B-1524.5;
-    }
-    static jdKeTanggal(jd) {
-      jd+=0.5; const Z=Math.floor(jd), F=jd-Z;
-      let A; if(Z<2299161)A=Z; else{const a=Math.floor((Z-1867216.25)/36524.25);A=Z+1+a-Math.floor(a/4);}
-      const B=A+1524, C=Math.floor((B-122.1)/365.25), D=Math.floor(365.25*C);
-      const E=Math.floor((B-D)/30.6001), hari=B-D-Math.floor(30.6001*E)+F;
-      const bulan=E<14?E-1:E-13, tahun=bulan>2?C-4716:C-4715;
-      return{tahun,bulan,hari};
-    }
-    static deltaT(thn) {
-      if(thn>=2005&&thn<=2050){const t=thn-2000;return 62.92+0.32217*t+0.005589*t*t;}
-      if(thn>=1900&&thn<=2005){const u=(thn-1900)/100;return 0.297*u-0.02+0.025184*u*u-0.181133*u*u*u;}
-      const r=(thn-2000)/100;return 62.92+32*r*r;
-    }
+    let bln = data.bulan, thn = data.tahun, tinggi = data.altitude, kriteria = data.kriteria, latSet = data.latitude, lonSet = data.longitude, zona = 7, lat = desKeDMS(latSet),lon=desKeDMS(lonSet);   
+    class HisabHilal { static d2r = Math.PI/180; static r2d = 180/Math.PI; static sinD(d) { return Math.sin(d*this.d2r); } static cosD(d) { return Math.cos(d*this.d2r); }static tanD(d) { return Math.tan(d*this.d2r); } static asinD(v) { return Math.asin(v)*this.r2d; } static acosD(v) { return Math.acos(Math.max(-1,Math.min(1,v)))*this.r2d; } static atan2D(y,x) { return Math.atan2(y,x)*this.r2d; } static norm(a) { return a-360*Math.floor(a/360); } static tanggalKeJD(thn, bln, hari) {if(bln<=2){thn--;bln+=12;} const A=Math.floor(thn/100), B=2-A+Math.floor(A/4); return Math.floor(365.25*(thn+4716))+Math.floor(30.6001*(bln+1))+hari+B-1524.5; } static jdKeTanggal(jd) { jd+=0.5; const Z=Math.floor(jd), F=jd-Z; let A; if(Z<2299161)A=Z; else{const a=Math.floor((Z-1867216.25)/36524.25);A=Z+1+a-Math.floor(a/4);} const B=A+1524, C=Math.floor((B-122.1)/365.25), D=Math.floor(365.25*C); const E=Math.floor((B-D)/30.6001), hari=B-D-Math.floor(30.6001*E)+F; const bulan=E<14?E-1:E-13, tahun=bulan>2?C-4716:C-4715; return{tahun,bulan,hari}; }static deltaT(thn) { if(thn>=2005&&thn<=2050){const t=thn-2000;return 62.92+0.32217*t+0.005589*t*t;} if(thn>=1900&&thn<=2005){const u=(thn-1900)/100;return 0.297*u-0.02+0.025184*u*u-0.181133*u*u*u;} const r=(thn-2000)/100;return 62.92+32*r*r;}
 
     // Mengembalikan JDE + detail
     static jdeBulanBaruDetail(k) {
-      const T=k/1236.85, T2=T*T, T3=T2*T, T4=T3*T;
-      let JDE=2451550.09766+29.530588861*k+0.00015437*T2-0.00000015*T3+0.00000000073*T4;
-      const M=this.norm(2.5534+29.1053567*k-0.0000014*T2-0.00000011*T3);
-      const Maksen=this.norm(201.5643+385.81693528*k+0.0107582*T2+0.00001238*T3-0.000000058*T4);
-      const F=this.norm(160.7108+390.67050284*k-0.0016118*T2-0.00000227*T3+0.000000011*T4);
-      const Omega=this.norm(124.7746-1.56375588*k+0.0020672*T2+0.00000215*T3);
-      const E=1-0.002516*T-0.0000074*T2, E2=E*E;
-      const koreksi=[
-        [-0.4072,1,Maksen,0],[0.17241,2,M,0],[0.01608,1,2*Maksen,0],[0.01039,1,2*F,0],
-        [0.00739,2,Maksen-M,0],[-0.00514,2,Maksen+M,0],[0.00208,3,2*M,0],[-0.00111,1,Maksen-2*F,0],
-        [-0.00057,1,Maksen+2*F,0],[0.00056,2,2*Maksen+M,0],[-0.00042,1,3*Maksen,0],[0.00042,2,M+2*F,0],
-        [0.00038,2,M-2*F,0],[-0.00024,2,2*Maksen-M,0],[-0.00017,1,Omega,0],[-0.00007,1,Maksen+2*M,0],
-        [0.00004,1,2*Maksen-2*F,0],[0.00004,1,3*M,0],[0.00003,1,Maksen+M-2*F,0],[0.00003,1,2*Maksen+2*F,0],
-        [-0.00003,1,Maksen+M+2*F,0],[0.00003,1,Maksen-M+2*F,0],[-0.00002,1,Maksen-M-2*F,0],[-0.00002,1,3*Maksen+M,0],
-        [0.00002,1,4*Maksen,0]
-      ];
-      let totalKoreksi=0;
-      const detailKoreksi=[];
-      koreksi.forEach(kor=>{
-        let fak=1; if(kor[1]===2)fak=E; else if(kor[1]===3)fak=E2;
-        const val=kor[0]*fak*this.sinD(kor[2]);
-        totalKoreksi+=val;
-        detailKoreksi.push({rumus:`${kor[0].toFixed(9)} × ${fak===E?'E':fak===E2?'E²':'1'} × sin(${kor[2].toFixed(6)}°)`,nilai:val.toFixed(9)});
-      });
-      JDE+=totalKoreksi;
-
-      const A = [];
-            A[1]  = this.norm(299.77 + 0.107408 * k - 0.009173 * T2);
-            A[2]  = this.norm(251.88 + 0.016321 * k);
-            A[3]  = this.norm(251.83 + 26.651886 * k);
-            A[4]  = this.norm(349.42 + 36.412478 * k);
-            A[5]  = this.norm(84.66 + 18.206239 * k);
-            A[6]  = this.norm(141.74 + 53.303771 * k);
-            A[7]  = this.norm(207.14 + 2.453732 * k);
-            A[8]  = this.norm(154.84 + 7.306860 * k);
-            A[9]  = this.norm(34.52 + 27.261239 * k);
-            A[10] = this.norm(207.19 + 0.121824 * k);
-            A[11] = this.norm(291.34 + 1.844379 * k);
-            A[12] = this.norm(161.72 + 24.198154 * k);
-            A[13] = this.norm(239.56 + 25.513099 * k);
-            A[14] = this.norm(331.55 + 3.592518 * k);
-
+      const T=k/1236.85, T2=T*T, T3=T2*T, T4=T3*T; let JDE =2451550.09766+29.530588861*k+0.00015437*T2-0.00000015*T3+0.00000000073*T4, M =this.norm(2.5534+29.1053567*k-0.0000014*T2-0.00000011*T3), Maksen =this.norm(201.5643+385.81693528*k+0.0107582*T2+0.00001238*T3-0.000000058*T4), F=this.norm(160.7108+390.67050284*k-0.0016118*T2-0.00000227*T3+0.000000011*T4), Omega =this.norm(124.7746-1.56375588*k+0.0020672*T2+0.00000215*T3), E =1-0.002516*T-0.0000074*T2, E2=E*E, koreksi=[[-0.4072,1,Maksen,0],[0.17241,2,M,0],[0.01608,1,2*Maksen,0],[0.01039,1,2*F,0],[0.00739,2,Maksen-M,0],[-0.00514,2,Maksen+M,0],[0.00208,3,2*M,0],[-0.00111,1,Maksen-2*F,0],[-0.00057,1,Maksen+2*F,0],[0.00056,2,2*Maksen+M,0],[-0.00042,1,3*Maksen,0],[0.00042,2,M+2*F,0],[0.00038,2,M-2*F,0],[-0.00024,2,2*Maksen-M,0],[-0.00017,1,Omega,0],[-0.00007,1,Maksen+2*M,0], [0.00004,1,2*Maksen-2*F,0],[0.00004,1,3*M,0],[0.00003,1,Maksen+M-2*F,0],[0.00003,1,2*Maksen+2*F,0],[-0.00003,1,Maksen+M+2*F,0],[0.00003,1,Maksen-M+2*F,0],[-0.00002,1,Maksen-M-2*F,0],[-0.00002,1,3*Maksen+M,0],[0.00002,1,4*Maksen,0]];
+      let totalKoreksi=0; const detailKoreksi=[]; koreksi.forEach(kor=>{ let fak=1; if(kor[1]===2)fak=E; else if(kor[1]===3)fak=E2; const val=kor[0]*fak*this.sinD(kor[2]); totalKoreksi+=val; detailKoreksi.push({rumus:`${kor[0].toFixed(9)} × ${fak===E?'E':fak===E2?'E²':'1'} × sin(${kor[2].toFixed(6)}°)`,nilai:val.toFixed(9)});}); JDE+=totalKoreksi;
+      const A = []; A[1]  = this.norm(299.77 + 0.107408 * k - 0.009173 * T2); A[2]  = this.norm(251.88 + 0.016321 * k); A[3]  = this.norm(251.83 + 26.651886 * k); A[4]  = this.norm(349.42 + 36.412478 * k); A[5]  = this.norm(84.66 + 18.206239 * k); A[6]  = this.norm(141.74 + 53.303771 * k); A[7]  = this.norm(207.14 + 2.453732 * k); A[8]  = this.norm(154.84 + 7.306860 * k); A[9]  = this.norm(34.52 + 27.261239 * k); A[10] = this.norm(207.19 + 0.121824 * k); A[11] = this.norm(291.34 + 1.844379 * k); A[12] = this.norm(161.72 + 24.198154 * k); A[13] = this.norm(239.56 + 25.513099 * k); A[14] = this.norm(331.55 + 3.592518 * k);
       const A1  = A[1], A2  = A[2], A3  = A[3], A4  = A[4], A5  = A[5], A6  = A[6], A7  = A[7], A8  = A[8], A9  = A[9], A10 = A[10], A11 = A[11], A12 = A[12], A13 = A[13], A14 = A[14];
+      const P1  = 0.000325 * this.sinD(A1), P2  = 0.000165 * this.sinD(A2), P3  = 0.000164 * this.sinD(A3), P4  = 0.000126 * this.sinD(A4), P5  = 0.000110 * this.sinD(A5), P6  = 0.000062 * this.sinD(A6), P7  = 0.000060 * this.sinD(A7),P8  = 0.000056 * this.sinD(A8),P9  = 0.000047 * this.sinD(A9), P10 = 0.000042 * this.sinD(A10), P11 = 0.000040 * this.sinD(A11), P12 = 0.000037 * this.sinD(A12), P13 = 0.000035 * this.sinD(A13), P14 = 0.000023 * this.sinD(A14);
+      const totalPlanet = P1 + P2 + P3 + P4 + P5 + P6 + P7 + P8 + P9 + P10 + P11 + P12 + P13 + P14; JDE += totalPlanet;
+      return { k, T, T2, T3, T4, JDE_awal: 2451550.09766 + 29.530588861 * k + 0.00015437 * T2 - 0.00000015 * T3 + 0.00000000073 * T4, M, Maksen, F, Omega, E, JDE, totalKoreksi, detailKoreksi, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, totalPlanet};}
 
-      const P1  = 0.000325 * this.sinD(A1),
-            P2  = 0.000165 * this.sinD(A2),
-            P3  = 0.000164 * this.sinD(A3),
-            P4  = 0.000126 * this.sinD(A4),
-            P5  = 0.000110 * this.sinD(A5),
-            P6  = 0.000062 * this.sinD(A6),
-            P7  = 0.000060 * this.sinD(A7),
-            P8  = 0.000056 * this.sinD(A8),
-            P9  = 0.000047 * this.sinD(A9),
-            P10 = 0.000042 * this.sinD(A10),
-            P11 = 0.000040 * this.sinD(A11),
-            P12 = 0.000037 * this.sinD(A12),
-            P13 = 0.000035 * this.sinD(A13),
-            P14 = 0.000023 * this.sinD(A14);
-      
-      const totalPlanet =
-          P1 + P2 + P3 + P4 + P5 + P6 + P7 +
-          P8 + P9 + P10 + P11 + P12 + P13 + P14;
-      
-      JDE += totalPlanet;
-      
-      return {
-          k, T, T2, T3, T4, JDE_awal: 2451550.09766 + 29.530588861 * k + 0.00015437 * T2 - 0.00000015 * T3 + 0.00000000073 * T4, M, Maksen, F, Omega, E, JDE, totalKoreksi, detailKoreksi, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, totalPlanet
-      };
-      
-    }
+    static perkiraanKDariHijriah(tahun, bulan) {const jdP=1948439.5+354.36667*(tahun-1)+29.53059*(bulan-1); const k=Math.round((jdP-2451550.09766)/29.530588861); return {k,jdPerkiraan:jdP};}
+    static nutasiDetail(jde) {const T=(jde-2451545)/36525; const Omega=this.norm(125.04452-1934.136261*T),L=this.norm(280.4665+36000.7698*T),Laksen=this.norm(218.3165+481267.8813*T); const dpsi=(-17.2/3600)*this.sinD(Omega)+(-1.32/3600)*this.sinD(2*L)+(-0.23/3600)*this.sinD(2*Laksen)+(0.21/3600)*this.sinD(2*Omega);const deps=(9.2/3600)*this.cosD(Omega)+(0.57/3600)*this.cosD(2*L)+(0.10/3600)*this.cosD(2*Laksen)+(-0.09/3600)*this.cosD(2*Omega); return {dpsi,deps,Omega,L,Laksen,T}; }
+    static oblikuitasRataRata(jde) { const T=(jde-2451545)/36525; return 23.439291111-1.300258333*T-0.000430556*T*T+0.555347222*T*T*T-0.014272222*T*T*T*T;}
 
-    static perkiraanKDariHijriah(tahun, bulan) {
-      const jdP=1948439.5+354.36667*(tahun-1)+29.53059*(bulan-1);
-      const k=Math.round((jdP-2451550.09766)/29.530588861);
-      return {k,jdPerkiraan:jdP};
-    }
-
-    static nutasiDetail(jde) {
-      const T=(jde-2451545)/36525;
-      const Omega=this.norm(125.04452-1934.136261*T),L=this.norm(280.4665+36000.7698*T),Laksen=this.norm(218.3165+481267.8813*T);
-      const dpsi=(-17.2/3600)*this.sinD(Omega)+(-1.32/3600)*this.sinD(2*L)+(-0.23/3600)*this.sinD(2*Laksen)+(0.21/3600)*this.sinD(2*Omega);
-      const deps=(9.2/3600)*this.cosD(Omega)+(0.57/3600)*this.cosD(2*L)+(0.10/3600)*this.cosD(2*Laksen)+(-0.09/3600)*this.cosD(2*Omega);
-      return {dpsi,deps,Omega,L,Laksen,T};
-    }
-
-    static oblikuitasRataRata(jde) {
-      const T=(jde-2451545)/36525;
-      return 23.439291111-1.300258333*T-0.000430556*T*T+0.555347222*T*T*T-0.014272222*T*T*T*T;
-    }
-
-    static posisiMatahari(jd) {
-      const thn=this.jdKeTanggal(jd).tahun;
-      const T=(jd+this.deltaT(thn)/86400-2451545)/36525,T2=T*T;
-      const L0=this.norm(280.46646+36000.76983*T+0.0003032*T2);
-      const M=this.norm(357.52911+35999.05029*T-0.0001537*T2);
-      const e=0.016708634-0.000042037*T-0.0000001267*T2;
-      const C=(1.914602-0.004817*T-0.000014*T2)*this.sinD(M)+(0.019993-0.000101*T)*this.sinD(2*M)+0.000289*this.sinD(3*M);
-      const bujur=L0+C, anom=M+C;
-      const R=1.000001018*(1-e*e)/(1+e*this.cosD(anom));
-      const Omega=this.norm(125.04-1934.136*T);
-      const lambda=bujur-0.00569-0.00478*this.sinD(Omega);
-      const eps0=this.oblikuitasRataRata(jd),eps=eps0+this.nutasiDetail(jd).deps;
-      const ra=this.norm(this.atan2D(this.cosD(eps)*this.sinD(lambda),this.cosD(lambda)));
-      const dec=this.asinD(this.sinD(eps)*this.sinD(lambda));
-      const y=this.tanD(eps/2),y2=y*y;
-      const perata=y2*this.sinD(2*L0)-2*e*this.sinD(M)+4*e*y2*this.sinD(M)*this.cosD(2*L0)-0.5*y2*y2*this.sinD(4*L0)-1.25*e*e*this.sinD(2*M);
-      return {lambda,ra,dec,R,perataMenit:4*perata*this.r2d,eps,T};
-    }
+    static posisiMatahari(jd) {const thn=this.jdKeTanggal(jd).tahun, T=(jd+this.deltaT(thn)/86400-2451545)/36525,T2=T*T, L0=this.norm(280.46646+36000.76983*T+0.0003032*T2), M=this.norm(357.52911+35999.05029*T-0.0001537*T2), e=0.016708634-0.000042037*T-0.0000001267*T2, C=(1.914602-0.004817*T-0.000014*T2)*this.sinD(M)+(0.019993-0.000101*T)*this.sinD(2*M)+0.000289*this.sinD(3*M), bujur=L0+C, anom=M+C, R=1.000001018*(1-e*e)/(1+e*this.cosD(anom)), Omega=this.norm(125.04-1934.136*T), lambda=bujur-0.00569-0.00478*this.sinD(Omega), eps0=this.oblikuitasRataRata(jd),eps=eps0+this.nutasiDetail(jd).deps, ra=this.norm(this.atan2D(this.cosD(eps)*this.sinD(lambda),this.cosD(lambda))), dec=this.asinD(this.sinD(eps)*this.sinD(lambda)), y=this.tanD(eps/2),y2=y*y, perata=y2*this.sinD(2*L0)-2*e*this.sinD(M)+4*e*y2*this.sinD(M)*this.cosD(2*L0)-0.5*y2*y2*this.sinD(4*L0)-1.25*e*e*this.sinD(2*M); return {lambda,ra,dec,R,perataMenit:4*perata*this.r2d,eps,T};}
 
     static posisiBulan(jd) {
       const thn=this.jdKeTanggal(jd).tahun;
-      const T=(jd+this.deltaT(thn)/86400-2451545)/36525,T2=T*T,T3=T2*T,T4=T3*T;
-      const Laksen=this.norm(218.3164477+481267.88123421*T-0.0015786*T2+T3/538841-T4/65194000);
-      const D=this.norm(297.8501921+445267.1114034*T-0.0018819*T2+T3/545868-T4/113065000);
-      const M=this.norm(357.5291092+35999.0502909*T-0.0001536*T2+T3/24490000);
-      const Maksen=this.norm(134.9633964+477198.8675055*T+0.0087414*T2+T3/69699-T4/14712000);
-      const F=this.norm(93.272095+483202.0175233*T-0.0036539*T2-T3/3526000+T4/863310000);
-      const E=1-0.002516*T-0.0000074*T2,E2=E*E;
-      return {T,Laksen,D,M,Maksen,F,E,eps:this.oblikuitasRataRata(jd)+this.nutasiDetail(jd).deps};
-    }
+      const T=(jd+this.deltaT(thn)/86400-2451545)/36525,T2=T*T,T3=T2*T,T4=T3*T, Laksen=this.norm(218.3164477+481267.88123421*T-0.0015786*T2+T3/538841-T4/65194000), D=this.norm(297.8501921+445267.1114034*T-0.0018819*T2+T3/545868-T4/113065000), M=this.norm(357.5291092+35999.0502909*T-0.0001536*T2+T3/24490000), Maksen=this.norm(134.9633964+477198.8675055*T+0.0087414*T2+T3/69699-T4/14712000), F=this.norm(93.272095+483202.0175233*T-0.0036539*T2-T3/3526000+T4/863310000), E=1-0.002516*T-0.0000074*T2,E2=E*E; return {T,Laksen,D,M,Maksen,F,E,eps:this.oblikuitasRataRata(jd)+this.nutasiDetail(jd).deps};}
 
     static hitungAwalBulanLengkap(bulan, tahun, latD, latM, latS, lonD, lonM, lonS, elev, zona, kriteria) {
     const lintang = latD + (latD < 0 ? -1 : 1) * (Math.abs(latM) / 60 + Math.abs(latS) / 3600);
