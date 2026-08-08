@@ -68,6 +68,16 @@ body {
 .card {
   padding:5px;
 }
+@media (min-width: 768px) {
+  .card {
+    padding:5px 350px;
+  }
+}
+@media (min-width: 1024px) {
+  .card {
+    padding:5px 530px;
+  }
+}
 
 .sholat-list .row{
   display:flex;
@@ -106,6 +116,17 @@ body {
 .calendar-card {
   margin-top: 15px;
 }
+@media (min-width: 768px) {
+  .calendar-card {
+    padding:5px 350px;
+  }
+}
+@media (min-width: 1024px) {
+  .calendar-card {
+    padding:5px 530px;
+  }
+}
+
 
 .calendar-header {
   display:flex;
