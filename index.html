@@ -242,11 +242,11 @@
     <!-- Konten Ijtima -->
     <div class="hisab-content" id="hisabAkhirBulan">
         <div class="field">
-            <label>Tahun</label>
+            <label>Tahun Hijri</label>
             <input type="number" value="1448" id="inputIjtimaTahun">
         </div>
         <div class="field">
-            <label>Bulan</label>
+            <label>Bulan Hijri</label>
             <select id='inputIjtimaBulan'>
                 <option value="1">01. Muharram</option>
                 <option value="2">02. Shafar</option>
@@ -312,6 +312,30 @@
               <input type="number" value="7" id="inputWSTZ">
         </div>
         <button class="btn-process" id="btnProsesWS">PROSES</button>
+    </div>
+    <div class="hisab-content" id="hisabGerhana">
+        <div class="field">
+            <label>Tahun Masehi</label>
+            <input type="number" value="2026" id="inputGerhanaTahun">
+        </div>
+        <div class="field">
+            <label>Zona Waktu</label>
+              <input type="number" value="7" id="inputZonaGerhana">
+        </div>
+        <div class="field">
+            <label>Jenis Gerhana</label>
+            <select id="inputJenisGerhana">
+              <option value="gb">Gerhana Bulan</option>
+              <option value="gm">Gerhana Matahari</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>Metode</label>
+            <select id="inputGerhanaMetode">
+              <option value="gjm">Jean Meeus</option>
+            </select>
+        </div>
+        <button class="btn-process" id="btnProsesHisabGerhana">PROSES</button>
     </div>
     
 </div>
@@ -527,7 +551,7 @@
         <button id="btnBackToIjtima" class="back-btn">
             <i class="bi bi-arrow-left"></i>
         </button>
-        <h3>Hasil Hisab</h3>
+        <h3>Hasil Hisab Ijtima</h3>
     </div>
     <div class="hasil-row" id="hasilHisabAkhirBulan"></div>
 </div>
@@ -536,9 +560,18 @@
         <button id="btnBackToWS" class="back-btn">
             <i class="bi bi-arrow-left"></i>
         </button>
-        <h3>Hasil Hisab</h3>
+        <h3>Hasil Hisab Waktu Shalat</h3>
     </div>
     <div class="hasil-row" id="hasilHisabWS"></div>
+</div>
+<div id="panelHasilHisabGerhana" class="hisab-panel hidden">
+    <div class="hisab-header">
+        <button id="btnBackToGerhana" class="back-btn">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+        <h3>Hasil Hisab Gerhana</h3>
+    </div>
+    <div class="hasil-row" id="hasilHisabGerhana"></div>
 </div>
 
 <!-- Menu Lainnya - Download -->
@@ -592,6 +625,8 @@
 <script src="js/fr.js"></script>
 <script src="js/jm.js"></script>
 <script src="js/ws.js"></script>
+<script src="js/gb.js"></script>
+<script src="js/gm.js"></script>
 <script src="js/menu-hisab.js"></script>
 <script src="js/menu-kalkulator.js"></script>
 <script src="js/menu-lainnya.js"></script>

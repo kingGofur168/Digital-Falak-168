@@ -26,7 +26,8 @@ btnCloseHisab.onclick = closeHisabPanel;
 const tabs = document.querySelectorAll('.hisab-tabs .tab');
 const inputIjtima = document.getElementById('hisabAkhirBulan');
 const inputWS = document.getElementById('hisabWaktuShalat');
-const contents = [inputIjtima, inputWS];
+const inputGerhana = document.getElementById('hisabGerhana');
+const contents = [inputIjtima, inputWS, inputGerhana];
 
 tabs.forEach((tab, index) => {
   tab.onclick = () => {
@@ -39,10 +40,18 @@ tabs.forEach((tab, index) => {
 
 const panelHasilHisab = document.getElementById('panelHasilHisab');
 const btnBackToIjtima = document.getElementById('btnBackToIjtima');
+const panelHasilHisabGerhana = document.getElementById('panelHasilHisabGerhana');
+const btnBackToGerhana = document.getElementById('btnBackToGerhana');
 
 if (btnBackToIjtima) {
     btnBackToIjtima.addEventListener("click", () => {
         panelHasilHisab.classList.add("hidden");
+        panelHisab.classList.remove("hidden");
+    });
+}
+if (btnBackToGerhana) {
+    btnBackToGerhana.addEventListener("click", () => {
+        panelHasilHisabGerhana.classList.add("hidden");
         panelHisab.classList.remove("hidden");
     });
 }
@@ -307,8 +316,7 @@ function hitungWaktuZawalDanMaghrib(data) {
 }
 
 // PROSES HISAB IJTIMA DARI SEMUA METODE
-document.getElementById("btnProsesHisabIjtima")
-.addEventListener("click", prosesHisab);
+document.getElementById("btnProsesHisabIjtima").addEventListener("click", prosesHisab);
 
 function prosesHisab() {
 
@@ -364,6 +372,40 @@ function prosesHisab() {
     tampilkanHasil(hasil);
 }
 
+document.getElementById("btnProsesHisabGerhana").addEventListener("click", prosesHisabGerhana);
+function prosesHisabGerhana() {
+
+    const datagerhana = {
+        tahun: Number(document.getElementById("inputGerhanaTahun").value),
+        jenisgerhana: document.getElementById("inputJenisGerhana").value,
+        zona: document.getElementById("inputZonaGerhana").value,
+
+        latitude: Number(localStorage.getItem("lat")) || 0,
+        longitude: Number(localStorage.getItem("lon")) || 0,
+        ihtiyat: Number(localStorage.getItem('ihtiyat')) || 0,
+        altitude: Number(localStorage.getItem("altitude")) || 0,
+        useAltitude: localStorage.getItem("use_altitude") === "true"
+    };
+
+    let hasilgerhana;
+
+    switch (datagerhana.jenisgerhana) {
+
+        case "gb":
+            hasilgerhana = hisabGB(datagerhana);
+            break;
+
+        case "gm":
+            hasilgerhana = hisabGM(datagerhana);
+            break;
+
+        default:
+            return;
+    }
+
+    tampilkanHasilGerhana(hasilgerhana);
+}
+
 function tampilkanHasil(hasil){
 
     document.getElementById("hasilHisabAkhirBulan").innerHTML = `
@@ -373,4 +415,14 @@ function tampilkanHasil(hasil){
 
     panelHisab.classList.add("hidden");
     panelHasilHisab.classList.remove("hidden");
+}
+function tampilkanHasilGerhana(hasilgerhana){
+
+    document.getElementById("hasilHisabGerhana").innerHTML = `
+        <span class="sub">${hasilgerhana.jenisgerhana}</span>
+        ${hasilgerhana.html}
+    `;
+
+    panelHisab.classList.add("hidden");
+    panelHasilHisabGerhana.classList.remove("hidden");
 }

@@ -99,11 +99,8 @@ if (btnMenuLokasi) {
     panelMenuLokasi.classList.remove("hidden");
 listLokasi.innerHTML = `
 <div class="feature-unavailable">
-    <!-- Partikel -->
-    <div class="particles" id="particles"></div>
-    <!-- Container -->
+  <div class="particles" id="particles"></div>
     <div class="feature-container">
-    <!-- Code Snippet -->
         <div class="code-snippet" id="codeSnippet">
 <span class="comment">// Status fitur</span>
 <span class="keyword">const</span> <span class="property">featureStatus</span> = {
@@ -114,8 +111,6 @@ listLokasi.innerHTML = `
 <span class="function">checkFeature</span>() → <span class="string">"403 - Belum Tersedia"</span>
             <span class="copy-indicator" id="copyIndicator">Tersalin!</span>
         </div>
-
-        <!-- Footer -->
         <p class="footer-note">
             Kode status: <span>403 • Fitur Belum Tersedia. </p>
     </div>
