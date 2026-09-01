@@ -5,70 +5,95 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FalakAI</title>
   <link rel="stylesheet" href="css/falakAI.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 
 <body>
   <div class="falak-app">
-    <div class="header">
-      <div class="logo"><i class="bi bi-robot"></i></div>
-      <div class="header-text">
-        <h1>FalakAI</h1>
-        <p>Asisten Hisabku</p>
-      </div>
-    </div>
-
-    <div class="chat-area" id="chatArea">
-      <div class="message ai">
-        <div class="bubble">
-          Assalamualaikum warahmatullahi wabarakatuh. 👋
-          <br><br>
-          Bismillahirrahmanirrahim.
-          <br><br>
-          Saya adalah <strong>FalakAI</strong>, asisten yang dirancang khusus untuk membantu perhitungan dan menjawab pertanyaan seputar <strong>Awal Bulan Hijriyah</strong>.
-          <br><br>
-          Perhitungan astronomi pada FalakAI menggunakan <strong>metode Jean Meeus</strong>. Saya dapat membantu Anda mengetahui waktu ijtimak, data posisi Matahari dan Bulan, tinggi hilal, elongasi, waktu terbenam Matahari, serta data-data hisab lainnya yang berkaitan dengan penentuan awal bulan Hijriyah.
-          <br><br>
-          Untuk data pengamatan seperti <strong>lintang, bujur, ketinggian tempat, dan kriteria imkan rukyat</strong>, FalakAI akan menggunakan <strong>data default</strong> yang telah ditentukan. Namun, Anda juga dapat meminta penggunaan data atau kriteria tertentu secara khusus.
-          <br><br>
-
-          Silakan tanyakan apa saja seputar <strong>Awal Bulan Hijriyah</strong>.
-
-          <div class="example">
-            Contoh:<br>
-            "Kapan lebaran 1448 H?"
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <div class="input-area">
-
-      <div class="input-box">
-
-        <input
-          type="text"
-          id="userInput"
-          placeholder="Tulis pertanyaan Anda..."
-        >
-
-        <button id="sendBtn">
-          ➤
+    <!-- Sidebar Riwayat Obrolan -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2>Riwayat Obrolan</h2>
+        <button class="new-chat-btn" id="newChatBtn" title="Obrolan Baru">
+          <i class="bi bi-plus-lg"></i>
         </button>
-
       </div>
-
+      <div class="chat-history" id="chatHistory">
+        <!-- Riwayat akan ditambahkan secara dinamis -->
+      </div>
     </div>
 
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="header">
+        <button class="menu-toggle" id="menuToggle">
+          <i class="bi bi-list"></i>
+        </button>
+        <div class="logo">
+          <i class="bi bi-robot"></i>
+        </div>
+        <div class="header-text">
+          <h1>FalakAI</h1>
+          <p>Asisten Hisabku</p>
+        </div>
+        <div class="header-actions">
+          <button class="header-action-btn" id="clearChatBtn" title="Hapus Semua Pesan">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Chat Area -->
+      <div class="chat-area" id="chatArea">
+        <div class="message ai">
+          <div class="bubble">
+            Assalamualaikum warahmatullahi wabarakatuh. 👋
+            <br><br>
+            Bismillahirrahmanirrahim.
+            <br><br>
+            Saya adalah <strong>FalakAI</strong>, asisten yang dirancang khusus untuk membantu perhitungan dan menjawab pertanyaan seputar <strong>Awal Bulan Hijriyah</strong>.
+            <br><br>
+            Perhitungan astronomi pada FalakAI menggunakan <strong>metode Jean Meeus</strong>. Saya dapat membantu Anda mengetahui waktu ijtimak, data posisi Matahari dan Bulan, tinggi hilal, elongasi, waktu terbenam Matahari, serta data-data hisab lainnya yang berkaitan dengan penentuan awal bulan Hijriyah.
+            <br><br>
+            Untuk data pengamatan seperti <strong>lintang, bujur, ketinggian tempat, dan kriteria imkan rukyat</strong>, FalakAI akan menggunakan <strong>data default</strong> yang telah ditentukan. Namun, Anda juga dapat meminta penggunaan data atau kriteria tertentu secara khusus.
+            <br><br>
+            Silakan tanyakan apa saja seputar <strong>Awal Bulan Hijriyah</strong>.
+
+            <div class="example">
+              <i class="bi bi-lightbulb"></i> Contoh:<br>
+              "Kapan lebaran 1448 H?"
+            </div>
+          </div>
+          <button class="copy-btn" title="Salin Pesan">
+            <i class="bi bi-clipboard"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Disclaimer -->
+      <div class="disclaimer">
+        <i class="bi bi-info-circle"></i> 
+        FalakAI bisa saja berbuat kesalahan. Mohon verifikasi informasi penting dengan sumber terpercaya.
+      </div>
+
+      <!-- Input Area -->
+      <div class="input-area">
+        <div class="input-box">
+          <input
+            type="text"
+            id="userInput"
+            placeholder="Tulis pertanyaan Anda..."
+          >
+          <button id="sendBtn" title="Kirim Pesan">
+            <i class="bi bi-send"></i>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
-
-  <script src="js/jm.js"></script>
+  <script src="js/mainAI.js"></script>
   <script src="js/falakAI.js"></script>
-
 </body>
 </html>

@@ -4,6 +4,9 @@ const sendButton = document.getElementById("sendBtn");
 
 const WORKER_URL = "https://purple-pond-1b94.abdulghofur234234234.workers.dev/";
 
+// API Key - Harus sama dengan di Worker
+const API_KEY = "ngobroldenganfalakai";
+
 const defaultSettings = {
   altitude: 100,
   kriteria: "4",
@@ -127,7 +130,8 @@ async function tanyaFalakAI(teks, settings = defaultSettings) {
     const response = await fetch(WORKER_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "X-API-Key": API_KEY
       },
       body: JSON.stringify({
         message: teks,
