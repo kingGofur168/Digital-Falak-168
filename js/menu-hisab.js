@@ -364,6 +364,10 @@ function prosesHisab() {
         case "jm":
             hasil = hisabJM(data);
             break;
+            
+        case "mk":
+            hasil = hisabMK(data);
+            break;
 
         default:
             return;

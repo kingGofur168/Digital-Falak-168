@@ -1,0 +1,254 @@
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
+:root {
+  scroll-behavior: smooth;
+}
+
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  font-family:Arial,sans-serif;
+}
+
+body{
+  background:#080d18;
+  color:#f1f5f9;
+  height:100vh;
+  overflow:hidden;
+}
+
+.falak-app{
+  width:100%;
+  max-width:850px;
+  height:100vh;
+  margin:auto;
+  display:flex;
+  flex-direction:column;
+  background:#0b1020;
+}
+
+/* HEADER */
+
+.header{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:16px 18px;
+  background:#111827;
+  border-bottom:1px solid #1f2937;
+}
+
+.logo{
+  width:45px;
+  height:45px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:24px;
+  background:#1e293b;
+}
+
+.header-text h1{
+  font-size:20px;
+  font-weight:600;
+}
+
+.header-text p{
+  font-size:12px;
+  color:#94a3b8;
+  margin-top:3px;
+}
+
+/* CHAT */
+
+.chat-area{
+  flex:1;
+  overflow-y:auto;
+  padding:20px 15px 30px;
+}
+
+.message{
+  display:flex;
+  margin-bottom:18px;
+}
+
+.message.ai{
+  justify-content:flex-start;
+}
+
+.message.user{
+  justify-content:flex-end;
+}
+
+.bubble{
+  max-width:88%;
+  padding:14px 16px;
+  border-radius:18px;
+  font-size:14px;
+  line-height:1.6;
+}
+
+.ai .bubble{
+  background:#172033;
+  border:1px solid #263247;
+  border-bottom-left-radius:5px;
+}
+
+.user .bubble{
+  background:#243b64;
+  border-bottom-right-radius:5px;
+}
+
+.bubble strong{
+  color:#ffffff;
+}
+
+.example{
+  margin-top:15px;
+  padding-top:12px;
+  border-top:1px solid #2a3548;
+  color:#cbd5e1;
+  font-style:italic;
+}
+
+/* INPUT */
+
+.input-area{
+  padding:12px;
+  background:#111827;
+  border-top:1px solid #1f2937;
+}
+
+.input-box{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+#userInput{
+  flex:1;
+  border:none;
+  outline:none;
+  background:#1a2335;
+  color:#ffffff;
+  padding:14px 16px;
+  border-radius:25px;
+  font-size:14px;
+}
+
+#userInput::placeholder{
+  color:#718096;
+}
+
+#sendBtn{
+  width:48px;
+  height:48px;
+  border:none;
+  border-radius:50%;
+  background:#365d9d;
+  color:white;
+  font-size:20px;
+  cursor:pointer;
+}
+
+#sendBtn:active{
+  transform:scale(.95);
+}
+
+/* SCROLLBAR */
+
+.chat-area::-webkit-scrollbar{
+  width:5px;
+}
+
+.chat-area::-webkit-scrollbar-thumb{
+  background:#2b3548;
+  border-radius:10px;
+}
+
+/* DESKTOP */
+
+@media(min-width:850px){
+
+  body{
+    padding:20px;
+  }
+
+  .falak-app{
+    height:calc(100vh - 40px);
+    border-radius:18px;
+    overflow:hidden;
+    border:1px solid #1f2937;
+  }
+
+}
+
+.copy-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 5px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.bubble:hover .copy-btn {
+  opacity: 1;
+}
+
+.copy-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.bubble {
+  position: relative;
+}
+
+/* Animasi indikator mengetik */
+.typing-bubble {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px;
+  align-items: center;
+}
+
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #666;
+  border-radius: 50%;
+  animation: typing-bounce 1.4s infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing-bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+/* Style untuk tombol kirim saat processing */
+#sendBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
