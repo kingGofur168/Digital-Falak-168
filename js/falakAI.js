@@ -127,15 +127,20 @@ const jawabanTidak = teks =>
 
 async function tanyaFalakAI(teks, settings = defaultSettings) {
   try {
+    const profil = loadProfil();
     const response = await fetch(WORKER_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-API-Key": API_KEY
+        "X-API-Key": "ngobroldenganfalakai"
       },
       body: JSON.stringify({
         message: teks,
-        ...settings
+        altitude: profil.altitude,
+        latitude: profil.latitude,
+        longitude: profil.longitude,
+        zona: profil.zona,
+        kriteria: profil.kriteria || "4"
       })
     });
     if (!response.ok) {

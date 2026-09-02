@@ -1,5 +1,9 @@
 // js/falakAI.js
 
+// ===============================
+// KELAS FALAK AI
+// ===============================
+
 class FalakAI {
   constructor() {
     this.chatArea = document.getElementById('chatArea');
@@ -10,6 +14,7 @@ class FalakAI {
     this.menuToggle = document.getElementById('menuToggle');
     this.newChatBtn = document.getElementById('newChatBtn');
     this.clearChatBtn = document.getElementById('clearChatBtn');
+    this.sidebarOverlay = document.getElementById('sidebarOverlay');
     
     this.currentChatId = null;
     this.isProcessing = false;
@@ -19,33 +24,60 @@ class FalakAI {
   }
   
   init() {
+    console.log('🚀 FalakAI dimulai');
+    
     // Load riwayat chat
     this.loadChatHistory();
     
     // Jika tidak ada chat aktif, buat chat baru
     if (!this.currentChatId) {
-      this.createNewChat(false); // false = jangan render ulang
+      this.createNewChat(false);
     } else {
-      this.loadChat(this.currentChatId, false); // false = jangan render ulang
+      this.loadChat(this.currentChatId, false);
     }
     
     // Event listeners
-    this.sendBtn.addEventListener('click', () => this.sendMessage());
-    this.userInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        this.sendMessage();
-      }
-    });
+    if (this.sendBtn) {
+      this.sendBtn.addEventListener('click', () => this.sendMessage());
+    }
     
-    this.newChatBtn.addEventListener('click', () => this.createNewChat());
-    this.clearChatBtn.addEventListener('click', () => this.clearCurrentChat());
-    this.menuToggle.addEventListener('click', () => this.toggleSidebar());
+    if (this.userInput) {
+      this.userInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          this.sendMessage();
+        }
+      });
+    }
+    
+    if (this.newChatBtn) {
+      this.newChatBtn.addEventListener('click', () => this.createNewChat());
+    }
+    
+    if (this.clearChatBtn) {
+      this.clearChatBtn.addEventListener('click', () => this.clearCurrentChat());
+    }
+    
+    if (this.menuToggle) {
+      this.menuToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.toggleSidebar();
+      });
+    }
+    
+    if (this.sidebarOverlay) {
+      this.sidebarOverlay.addEventListener('click', () => {
+        this.closeSidebar();
+      });
+    }
     
     // Tutup sidebar saat klik di luar
     document.addEventListener('click', (e) => {
       if (this.isSidebarOpen && 
+          this.sidebar && 
           !this.sidebar.contains(e.target) && 
+          this.menuToggle && 
           !this.menuToggle.contains(e.target)) {
         this.closeSidebar();
       }
@@ -55,14 +87,9 @@ class FalakAI {
     window.addEventListener('beforeunload', () => {
       this.saveCurrentChatState();
     });
-    
-    // Simpan chat secara berkala (setiap 30 detik)
-    setInterval(() => {
-      this.saveCurrentChatState();
-    }, 30000);
   }
   
-  // ====== SIDEBAR FUNCTIONS ======
+  // ====== SIDEBAR ======
   toggleSidebar() {
     if (this.isSidebarOpen) {
       this.closeSidebar();
@@ -72,22 +99,34 @@ class FalakAI {
   }
   
   openSidebar() {
-    this.sidebar.classList.add('open');
-    this.isSidebarOpen = true;
+    if (this.sidebar) {
+      this.sidebar.classList.add('open');
+      this.isSidebarOpen = true;
+      
+      if (this.sidebarOverlay) {
+        this.sidebarOverlay.classList.add('active');
+      }
+    }
   }
   
   closeSidebar() {
-    this.sidebar.classList.remove('open');
-    this.isSidebarOpen = false;
+    if (this.sidebar) {
+      this.sidebar.classList.remove('open');
+      this.isSidebarOpen = false;
+      
+      if (this.sidebarOverlay) {
+        this.sidebarOverlay.classList.remove('active');
+      }
+    }
   }
   
-  // ====== CHAT HISTORY FUNCTIONS ======
+  // ====== STORAGE ======
   getAllChats() {
     try {
       const chats = localStorage.getItem('falakai_chats');
       return chats ? JSON.parse(chats) : {};
-    } catch (error) {
-      console.error('Error loading chats:', error);
+    } catch (e) {
+      console.error('❌ Gagal load chats:', e);
       return {};
     }
   }
@@ -95,25 +134,27 @@ class FalakAI {
   saveAllChats(chats) {
     try {
       localStorage.setItem('falakai_chats', JSON.stringify(chats));
-    } catch (error) {
-      console.error('Error saving chats:', error);
+    } catch (e) {
+      console.error('❌ Gagal simpan chats:', e);
     }
   }
   
   getCurrentChatId() {
-    return localStorage.getItem('falakai_current_chat');
+    return localStorage.getItem('falakai_current_chat') || null;
   }
   
   setCurrentChatId(chatId) {
-    localStorage.setItem('falakai_current_chat', chatId);
+    if (chatId) {
+      localStorage.setItem('falakai_current_chat', chatId);
+    } else {
+      localStorage.removeItem('falakai_current_chat');
+    }
   }
   
+  // ====== RIWAYAT CHAT ======
   loadChatHistory() {
     const chats = this.getAllChats();
     const currentChatId = this.getCurrentChatId();
-    
-    console.log('Current chat ID from storage:', currentChatId);
-    console.log('Available chats:', Object.keys(chats));
     
     if (currentChatId && chats[currentChatId]) {
       this.currentChatId = currentChatId;
@@ -123,10 +164,11 @@ class FalakAI {
   }
   
   renderChatHistory() {
+    if (!this.chatHistory) return;
+    
     const chats = this.getAllChats();
     this.chatHistory.innerHTML = '';
     
-    // Urutkan chats berdasarkan waktu (terbaru di atas)
     const sortedChats = Object.values(chats).sort((a, b) => {
       return new Date(b.updatedAt) - new Date(a.updatedAt);
     });
@@ -155,8 +197,8 @@ class FalakAI {
           <i class="bi bi-chat-left-text"></i>
         </div>
         <div class="history-content">
-          <div class="history-title">${this.escapeHtml(chat.title)}</div>
-          <div class="history-preview">${this.escapeHtml(chat.preview)}</div>
+          <div class="history-title">${this.escapeHtml(chat.title || 'Obrolan Baru')}</div>
+          <div class="history-preview">${this.escapeHtml(chat.preview || 'Ketik pertanyaan Anda...')}</div>
         </div>
         <div class="history-time">${time}</div>
         <button class="delete-chat-btn" title="Hapus obrolan">
@@ -164,7 +206,6 @@ class FalakAI {
         </button>
       `;
       
-      // Klik untuk load chat
       historyItem.addEventListener('click', (e) => {
         if (e.target.closest('.delete-chat-btn')) {
           e.stopPropagation();
@@ -180,11 +221,7 @@ class FalakAI {
   }
   
   createNewChat(renderHistory = true) {
-    console.log('Creating new chat...');
-    
     const chats = this.getAllChats();
-    
-    // Generate ID baru
     const chatId = 'chat_' + Date.now();
     
     chats[chatId] = {
@@ -200,8 +237,9 @@ class FalakAI {
     this.currentChatId = chatId;
     this.setCurrentChatId(chatId);
     
-    // Clear chat area
-    this.chatArea.innerHTML = '';
+    if (this.chatArea) {
+      this.chatArea.innerHTML = '';
+    }
     this.showWelcomeMessage();
     
     if (renderHistory) {
@@ -209,19 +247,13 @@ class FalakAI {
     }
     
     this.closeSidebar();
-    
-    console.log('New chat created with ID:', chatId);
   }
   
   loadChat(chatId, renderHistory = true) {
-    console.log('Loading chat:', chatId);
-    
     const chats = this.getAllChats();
     const chat = chats[chatId];
     
     if (!chat) {
-      console.error('Chat not found:', chatId);
-      // Jika chat tidak ditemukan, buat chat baru
       this.createNewChat();
       return;
     }
@@ -229,18 +261,15 @@ class FalakAI {
     this.currentChatId = chatId;
     this.setCurrentChatId(chatId);
     
-    // Clear chat area
-    this.chatArea.innerHTML = '';
+    if (this.chatArea) {
+      this.chatArea.innerHTML = '';
+    }
     
-    // Render pesan
     if (chat.messages && chat.messages.length > 0) {
-      console.log('Loading', chat.messages.length, 'messages');
-      
       chat.messages.forEach(msg => {
         this.renderMessage(msg.type, msg.content, false);
       });
     } else {
-      console.log('No messages, showing welcome');
       this.showWelcomeMessage();
     }
     
@@ -253,20 +282,16 @@ class FalakAI {
   
   deleteChat(chatId) {
     if (confirm('Hapus obrolan ini?')) {
-      console.log('Deleting chat:', chatId);
-      
       const chats = this.getAllChats();
       delete chats[chatId];
       this.saveAllChats(chats);
       
       if (this.currentChatId === chatId) {
         this.currentChatId = null;
-        this.setCurrentChatId('');
+        this.setCurrentChatId(null);
         
-        // Buat chat baru jika tidak ada chat tersisa
         const remainingChats = Object.keys(chats);
         if (remainingChats.length > 0) {
-          // Load chat terbaru
           const sortedChats = Object.values(chats).sort((a, b) => {
             return new Date(b.updatedAt) - new Date(a.updatedAt);
           });
@@ -292,7 +317,9 @@ class FalakAI {
         chat.updatedAt = new Date().toISOString();
         
         this.saveAllChats(chats);
-        this.chatArea.innerHTML = '';
+        if (this.chatArea) {
+          this.chatArea.innerHTML = '';
+        }
         this.showWelcomeMessage();
         this.renderChatHistory();
       }
@@ -306,14 +333,12 @@ class FalakAI {
     const chat = chats[this.currentChatId];
     
     if (chat) {
-      // Update judul berdasarkan pesan pertama user
       const firstUserMessage = chat.messages.find(msg => msg.type === 'user');
       if (firstUserMessage) {
         const text = firstUserMessage.content.replace(/<[^>]*>/g, '');
         chat.title = text.substring(0, 30) + (text.length > 30 ? '...' : '');
       }
       
-      // Update preview berdasarkan pesan terakhir
       const lastMessage = chat.messages[chat.messages.length - 1];
       if (lastMessage) {
         const text = lastMessage.content.replace(/<[^>]*>/g, '');
@@ -323,7 +348,6 @@ class FalakAI {
       chat.updatedAt = new Date().toISOString();
       
       this.saveAllChats(chats);
-      console.log('Chat state saved:', this.currentChatId, 'messages:', chat.messages.length);
     }
   }
   
@@ -332,11 +356,7 @@ class FalakAI {
     this.renderChatHistory();
   }
   
-  // ====== CHAT FUNCTIONS ======
-  clearChatArea() {
-    this.chatArea.innerHTML = '';
-  }
-  
+  // ====== CHAT ======
   showWelcomeMessage() {
     const welcomeMessage = `
       Assalamualaikum warahmatullahi wabarakatuh. 👋
@@ -361,45 +381,42 @@ class FalakAI {
   }
   
   sendMessage() {
-    const message = this.userInput.value.trim();
+    const message = this.userInput ? this.userInput.value.trim() : '';
     
     if (!message || this.isProcessing) return;
     
-    console.log('Sending message:', message);
-    
-    // Tambahkan pesan user
     this.renderMessage('user', message);
-    this.userInput.value = '';
-    this.userInput.style.height = 'auto';
     
-    // Simpan ke riwayat
+    if (this.userInput) {
+      this.userInput.value = '';
+      this.userInput.style.height = 'auto';
+    }
+    
     this.saveMessage('user', message);
     
-    // Tampilkan typing indicator
     this.showTypingIndicator();
     this.isProcessing = true;
-    this.sendBtn.disabled = true;
+    if (this.sendBtn) {
+      this.sendBtn.disabled = true;
+    }
     
-    // Simulasi response AI
     setTimeout(() => {
       this.removeTypingIndicator();
       
-      // Generate response
       const response = this.generateResponse(message);
       
       this.renderMessage('ai', response);
       this.saveMessage('ai', response);
       
       this.isProcessing = false;
-      this.sendBtn.disabled = false;
+      if (this.sendBtn) {
+        this.sendBtn.disabled = false;
+      }
       this.updateChatInfo();
-      
-      console.log('Message sent and saved');
     }, 1000);
   }
   
   generateResponse(userMessage) {
-    // Ini contoh sederhana
     const lowerMessage = userMessage.toLowerCase();
     
     if (lowerMessage.includes('lebaran') || lowerMessage.includes('idul fitri') || lowerMessage.includes('syawal')) {
@@ -449,6 +466,8 @@ class FalakAI {
   }
   
   renderMessage(type, content, animate = true) {
+    if (!this.chatArea) return;
+    
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}`;
     
@@ -458,7 +477,6 @@ class FalakAI {
     
     messageDiv.appendChild(bubble);
     
-    // Tambahkan tombol copy untuk pesan AI
     if (type === 'ai') {
       const copyBtn = document.createElement('button');
       copyBtn.className = 'copy-btn';
@@ -490,6 +508,8 @@ class FalakAI {
   }
   
   showTypingIndicator() {
+    if (!this.chatArea) return;
+    
     const typingDiv = document.createElement('div');
     typingDiv.className = 'message ai';
     typingDiv.id = 'typingIndicator';
@@ -514,8 +534,6 @@ class FalakAI {
   }
   
   saveMessage(type, content) {
-    console.log('Saving message:', type, 'to chat:', this.currentChatId);
-    
     const chats = this.getAllChats();
     const chat = chats[this.currentChatId];
     
@@ -529,15 +547,14 @@ class FalakAI {
       chat.updatedAt = new Date().toISOString();
       
       this.saveAllChats(chats);
-      console.log('Message saved. Total messages:', chat.messages.length);
-    } else {
-      console.error('Chat not found for saving message:', this.currentChatId);
     }
   }
   
   scrollToBottom() {
     setTimeout(() => {
-      this.chatArea.scrollTop = this.chatArea.scrollHeight;
+      if (this.chatArea) {
+        this.chatArea.scrollTop = this.chatArea.scrollHeight;
+      }
     }, 100);
   }
   
@@ -571,12 +588,339 @@ class FalakAI {
   }
 }
 
-// Inisialisasi saat halaman dimuat
-document.addEventListener('DOMContentLoaded', () => {
+// ===============================
+// DROPDOWN MENU HEADER
+// ===============================
+
+function initDropdownMenu() {
+  const btnMenu = document.getElementById("btnMenuHeader");
+  const dropdownMenu = document.getElementById("dropdownMenu");
+  const btnMenuProfil = document.getElementById("btnMenuProfil");
+  const btnMenuHapus = document.getElementById("btnMenuHapus");
+
+  if (!btnMenu || !dropdownMenu) {
+    console.log('ℹ️ Dropdown menu tidak ditemukan, melewati...');
+    return;
+  }
+
+  // Toggle dropdown
+  btnMenu.addEventListener("click", function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("🖱️ Tombol menu diklik");
+    
+    if (dropdownMenu.style.display === "block") {
+      dropdownMenu.style.display = "none";
+      console.log("📂 Dropdown ditutup");
+    } else {
+      dropdownMenu.style.display = "block";
+      console.log("📂 Dropdown dibuka");
+    }
+  });
+
+  // Tutup dropdown saat klik di luar
+  document.addEventListener("click", function(e) {
+    if (!dropdownMenu.contains(e.target) && e.target !== btnMenu && !btnMenu.contains(e.target)) {
+      dropdownMenu.style.display = "none";
+    }
+  });
+
+  // Menu Profil
+  if (btnMenuProfil) {
+    btnMenuProfil.addEventListener("click", function(e) {
+      e.preventDefault();
+      dropdownMenu.style.display = "none";
+      if (typeof bukaModalProfil === 'function') {
+        bukaModalProfil();
+      }
+    });
+  }
+
+  // Menu Hapus Obrolan
+  if (btnMenuHapus) {
+    btnMenuHapus.addEventListener("click", function(e) {
+      e.preventDefault();
+      dropdownMenu.style.display = "none";
+      if (window.falakAI) {
+        window.falakAI.clearCurrentChat();
+      }
+    });
+  }
+}
+
+// ===============================
+// PROFIL USER
+// ===============================
+
+const DEFAULT_PROFIL = {
+  foto: null,
+  nama: "",
+  hobi: "",
+  alamat: "Tangerang, Banten",
+  latitude: -6.122,
+  longitude: 106.606,
+  altitude: 20,
+  zona: 7,
+  kriteria: "4"
+};
+
+let profilUser = { ...DEFAULT_PROFIL };
+
+function loadProfil() {
+  const saved = localStorage.getItem("profilFalakAI");
+  if (saved) {
+    try {
+      profilUser = JSON.parse(saved);
+    } catch (e) {
+      profilUser = { ...DEFAULT_PROFIL };
+    }
+  }
+  return profilUser;
+}
+
+function simpanProfil(profil) {
+  profilUser = profil;
+  localStorage.setItem("profilFalakAI", JSON.stringify(profil));
+}
+
+function tampilkanProfil() {
+  const fotoImg = document.getElementById("fotoProfilImg");
+  const fotoDefault = document.getElementById("fotoProfilDefault");
+  const namaEl = document.getElementById("profilNama");
+  const alamatEl = document.getElementById("profilAlamat");
+
+  if (fotoImg && fotoDefault) {
+    if (profilUser.foto) {
+      fotoImg.src = profilUser.foto;
+      fotoImg.style.display = "block";
+      fotoDefault.style.display = "none";
+    } else {
+      fotoImg.style.display = "none";
+      fotoDefault.style.display = "block";
+    }
+  }
+
+  if (namaEl) namaEl.textContent = profilUser.nama || "Pengguna";
+  if (alamatEl) alamatEl.textContent = profilUser.alamat || "Tangerang, Banten";
+}
+
+function bukaModalProfil() {
+  const modal = document.getElementById("modalProfil");
+  if (!modal) {
+    return;
+  }
+  
+  modal.style.display = "flex";
+
+  document.getElementById("inputNama").value = profilUser.nama || "";
+  document.getElementById("inputHobi").value = profilUser.hobi || "";
+  document.getElementById("inputAlamat").value = profilUser.alamat || "Tangerang, Banten";
+  document.getElementById("inputLatitude").value = profilUser.latitude || -6.122;
+  document.getElementById("inputLongitude").value = profilUser.longitude || 106.606;
+  document.getElementById("inputAltitude").value = profilUser.altitude || 20;
+  document.getElementById("inputZona").value = profilUser.zona || 7;
+  document.getElementById("inputKriteria").value = profilUser.kriteria || "4"; 
+
+  if (inputNama) inputNama.value = profilUser.nama || "";
+  if (inputHobi) inputHobi.value = profilUser.hobi || "";
+  if (inputAlamat) inputAlamat.value = profilUser.alamat || "Tangerang, Banten";
+  if (inputLatitude) inputLatitude.value = profilUser.latitude || -6.122;
+  if (inputLongitude) inputLongitude.value = profilUser.longitude || 106.606;
+  if (inputAltitude) inputAltitude.value = profilUser.altitude || 20;
+  if (inputZona) inputZona.value = profilUser.zona || 7;
+
+  const previewFoto = document.getElementById("previewFoto");
+  const fotoPlaceholder = document.getElementById("fotoPlaceholder");
+  
+  if (previewFoto && fotoPlaceholder) {
+    if (profilUser.foto) {
+      previewFoto.src = profilUser.foto;
+      previewFoto.style.display = "block";
+      fotoPlaceholder.style.display = "none";
+    } else {
+      previewFoto.style.display = "none";
+      fotoPlaceholder.style.display = "flex";
+    }
+  }
+}
+
+function tutupModalProfil() {
+  const modal = document.getElementById("modalProfil");
+  if (modal) {
+    modal.style.display = "none";
+  }
+}
+
+function ambilLokasiGPS() {
+  if (!navigator.geolocation) {
+    alert("Geolocation tidak didukung di browser ini");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const inputLatitude = document.getElementById("inputLatitude");
+      const inputLongitude = document.getElementById("inputLongitude");
+      const inputZona = document.getElementById("inputZona");
+      
+      if (inputLatitude) inputLatitude.value = position.coords.latitude.toFixed(6);
+      if (inputLongitude) inputLongitude.value = position.coords.longitude.toFixed(6);
+      
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      let zona = 7;
+      if (timezone.includes("Makassar") || timezone.includes("Ujung Pandang")) {
+        zona = 8;
+      } else if (timezone.includes("Jayapura")) {
+        zona = 9;
+      }
+      if (inputZona) inputZona.value = zona;
+      
+      alert("Lokasi berhasil diambil dari GPS!");
+    },
+    (error) => {
+      alert("Gagal mengambil lokasi: " + error.message);
+    }
+  );
+}
+
+function handleUploadFoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const fotoData = e.target.result;
+    
+    const previewFoto = document.getElementById("previewFoto");
+    const fotoPlaceholder = document.getElementById("fotoPlaceholder");
+    
+    if (previewFoto && fotoPlaceholder) {
+      previewFoto.src = fotoData;
+      previewFoto.style.display = "block";
+      fotoPlaceholder.style.display = "none";
+    }
+    
+    profilUser.foto = fotoData;
+  };
+  reader.readAsDataURL(file);
+}
+
+function simpanProfilDariForm() {
+  const nama = document.getElementById("inputNama")?.value.trim() || "";
+  const hobi = document.getElementById("inputHobi")?.value.trim() || "";
+  const alamat = document.getElementById("inputAlamat")?.value.trim() || "";
+  const latitude = parseFloat(document.getElementById("inputLatitude")?.value);
+  const longitude = parseFloat(document.getElementById("inputLongitude")?.value);
+  const altitude = parseFloat(document.getElementById("inputAltitude")?.value);
+  const zona = parseInt(document.getElementById("inputZona")?.value);
+  const kriteria = parseInt(document.getElementById("inputKriteria")?.value);
+
+  if (!alamat) {
+    alert("Alamat wajib diisi!");
+    return;
+  }
+
+  if (isNaN(latitude) || isNaN(longitude)) {
+    alert("Latitude dan Longitude wajib diisi dengan angka!");
+    return;
+  }
+
+  profilUser = {
+    foto: profilUser.foto || null,
+    nama: nama,
+    hobi: hobi,
+    alamat: alamat,
+    latitude: latitude,
+    longitude: longitude,
+    altitude: isNaN(altitude) ? 0 : altitude,
+    zona: zona,
+    kriteria: kriteria
+  };
+
+  simpanProfil(profilUser);
+  tampilkanProfil();
+  tutupModalProfil();
+  
+  alert("Profil berhasil disimpan!");
+}
+
+function initProfil() {
+  console.log('👤 Inisialisasi profil...');
+  
+  loadProfil();
+  tampilkanProfil();
+
+  const btnEditProfil = document.getElementById("btnEditProfil");
+  if (btnEditProfil) {
+    btnEditProfil.addEventListener("click", bukaModalProfil);
+  }
+
+  const btnTutupModal = document.getElementById("btnTutupModal");
+  if (btnTutupModal) {
+    btnTutupModal.addEventListener("click", tutupModalProfil);
+  }
+
+  const btnBatalProfil = document.getElementById("btnBatalProfil");
+  if (btnBatalProfil) {
+    btnBatalProfil.addEventListener("click", tutupModalProfil);
+  }
+
+  const btnSimpanProfil = document.getElementById("btnSimpanProfil");
+  if (btnSimpanProfil) {
+    btnSimpanProfil.addEventListener("click", simpanProfilDariForm);
+  }
+
+  const btnAmbilGPS = document.getElementById("btnAmbilGPS");
+  if (btnAmbilGPS) {
+    btnAmbilGPS.addEventListener("click", ambilLokasiGPS);
+  }
+
+  const fotoPlaceholder = document.getElementById("fotoPlaceholder");
+  if (fotoPlaceholder) {
+    fotoPlaceholder.addEventListener("click", function() {
+      const inputFoto = document.getElementById("inputFoto");
+      if (inputFoto) inputFoto.click();
+    });
+  }
+
+  const previewFoto = document.getElementById("previewFoto");
+  if (previewFoto) {
+    previewFoto.addEventListener("click", function() {
+      const inputFoto = document.getElementById("inputFoto");
+      if (inputFoto) inputFoto.click();
+    });
+  }
+
+  const inputFoto = document.getElementById("inputFoto");
+  if (inputFoto) {
+    inputFoto.addEventListener("change", handleUploadFoto);
+  }
+
+  const modalProfil = document.getElementById("modalProfil");
+  if (modalProfil) {
+    modalProfil.addEventListener("click", function(e) {
+      if (e.target === this) {
+        tutupModalProfil();
+      }
+    });
+  }
+}
+
+// ===============================
+// INISIALISASI UTAMA (SATU SAJA)
+// ===============================
+
+document.addEventListener("DOMContentLoaded", function() {
+  console.log("🚀 DOM loaded, inisialisasi semua...");
+  
+  // 1. Inisialisasi FalakAI
   window.falakAI = new FalakAI();
   
-  // Debug: Log semua chat yang tersimpan
-  console.log('=== FalakAI Initialized ===');
-  console.log('All chats:', window.falakAI.getAllChats());
-  console.log('Current chat ID:', window.falakAI.getCurrentChatId());
+  // 2. Inisialisasi Profil
+  initProfil();
+  
+  // 3. Inisialisasi Dropdown Menu
+  initDropdownMenu();
+  
+  console.log("✅ Semua komponen berhasil diinisialisasi");
 });

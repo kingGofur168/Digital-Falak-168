@@ -10,6 +10,7 @@
 
 <body>
   <div class="falak-app">
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <!-- Sidebar Riwayat Obrolan -->
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
@@ -18,6 +19,19 @@
           <i class="bi bi-plus-lg"></i>
         </button>
       </div>
+      
+      <!-- Profil User di Sidebar -->
+      <div class="profil-user" id="profilUser">
+        <div class="profil-foto" id="profilFoto">
+          <img id="fotoProfilImg" src="" alt="Foto Profil" style="display: none;">
+          <i class="bi bi-person-circle" id="fotoProfilDefault"></i>
+        </div>
+        <div class="profil-info">
+          <div class="profil-nama" id="profilNama">Pengguna</div>
+          <div class="profil-alamat" id="profilAlamat">Tangerang, Banten</div>
+        </div>
+      </div>
+      
       <div class="chat-history" id="chatHistory">
         <!-- Riwayat akan ditambahkan secara dinamis -->
       </div>
@@ -37,10 +51,23 @@
           <h1>FalakAI</h1>
           <p>Asisten Hisabku</p>
         </div>
-        <div class="header-actions">
-          <button class="header-action-btn" id="clearChatBtn" title="Hapus Semua Pesan">
-            <i class="bi bi-trash"></i>
+        
+        <!-- Dropdown Menu -->
+        <div class="header-menu">
+          <button class="header-menu-btn" id="btnMenuHeader" title="Menu">
+            <i class="bi bi-three-dots-vertical"></i>
           </button>
+          
+          <div class="dropdown-menu" id="dropdownMenu" style="display: none;">
+            <button class="dropdown-item" id="btnMenuProfil">
+              <i class="bi bi-person"></i>
+              <span>Profil</span>
+            </button>
+            <button class="dropdown-item" id="btnMenuHapus">
+              <i class="bi bi-trash"></i>
+              <span>Hapus Obrolan</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -89,6 +116,100 @@
             <i class="bi bi-send"></i>
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Profil -->
+  <div class="modal-overlay" id="modalProfil" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Profil Saya</h2>
+        <button class="modal-close" id="btnTutupModal">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Foto Profil -->
+        <div class="form-group">
+          <label>Foto Profil</label>
+          <div class="foto-upload">
+            <img id="previewFoto" src="" alt="Preview" style="display: none;">
+            <div class="foto-placeholder" id="fotoPlaceholder">
+              <i class="bi bi-camera"></i>
+              <span>Pilih Foto</span>
+            </div>
+            <input type="file" id="inputFoto" accept="image/*" style="display: none;">
+          </div>
+        </div>
+
+        <!-- Nama -->
+        <div class="form-group">
+          <label>Nama</label>
+          <input type="text" id="inputNama" placeholder="Masukkan nama Anda">
+        </div>
+
+        <!-- Hobi -->
+        <div class="form-group">
+          <label>Hobi</label>
+          <input type="text" id="inputHobi" placeholder="Masukkan hobi Anda">
+        </div>
+
+        <!-- Alamat -->
+        <div class="form-group">
+          <label>Alamat</label>
+          <input type="text" id="inputAlamat" placeholder="Masukkan alamat lengkap">
+        </div>
+
+        <!-- Latitude -->
+        <div class="form-group">
+          <label>Latitude</label>
+          <div class="input-dengan-tombol">
+            <input type="number" id="inputLatitude" step="any" placeholder="-6.122">
+            <button class="btn-gps" id="btnAmbilGPS" title="Ambil dari GPS">
+              <i class="bi bi-geo-alt"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Longitude -->
+        <div class="form-group">
+          <label>Longitude</label>
+          <input type="number" id="inputLongitude" step="any" placeholder="106.606">
+        </div>
+
+        <!-- Ketinggian -->
+        <div class="form-group">
+          <label>Ketinggian Tempat (meter)</label>
+          <input type="number" id="inputAltitude" placeholder="20">
+        </div>
+
+        <!-- Zona Waktu -->
+        <div class="form-group">
+          <label>Zona Waktu</label>
+          <select id="inputZona">
+            <option value="7">WIB (GMT+7)</option>
+            <option value="8">WITA (GMT+8)</option>
+            <option value="9">WIT (GMT+9)</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>Kriteria</label>
+          <select id="inputZona">
+            <option value="1">Irtifa' 2°</option>
+            <option value="2">Iritifa 3° (MABIMS DULU)</option>
+            <option value="3">Irtifa' 2° Umur Hilal 8 Jam</option>
+            <option value="4" selected>Irtifa' 3° Elongasi 6.4 (MABIMS)</option>
+          </select>
+        </div>
+        
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn-simpan" id="btnSimpanProfil">Simpan</button>
+        <button class="btn-batal" id="btnBatalProfil">Batal</button>
       </div>
     </div>
   </div>

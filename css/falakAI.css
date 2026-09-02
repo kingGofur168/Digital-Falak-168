@@ -31,7 +31,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Poppins', 'Roboto', sans-serif;
   background: linear-gradient(135deg, #0a0f14 0%, #1a2a33 100%);
   height: 100vh;
-  height: 100dvh; /* Dynamic viewport height */
+  height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -45,7 +45,7 @@ body {
   width: 100%;
   max-width: 1200px;
   height: 100vh;
-  height: 100dvh; /* Dynamic viewport height */
+  height: 100dvh;
   background: var(--bg-chat);
   display: flex;
   box-shadow: var(--shadow);
@@ -62,15 +62,36 @@ body {
   }
 }
 
+/* Overlay untuk mobile */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+  opacity: 1;
+}
+
 /* Sidebar (Riwayat Obrolan) */
 .sidebar {
   width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
   background: var(--bg-sidebar);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease;
   height: 100%;
+  position: relative;
+  z-index: 100;
 }
 
 .sidebar-header {
@@ -226,6 +247,7 @@ body {
   flex-direction: column;
   min-width: 0;
   height: 100%;
+  position: relative;
 }
 
 /* Header */
@@ -247,11 +269,15 @@ body {
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: 20px;
+  font-size: 24px;
   padding: 8px;
   border-radius: 8px;
   transition: all 0.3s ease;
   display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
 }
 
 .menu-toggle:hover {
@@ -492,7 +518,7 @@ body {
 /* Input Area */
 .input-area {
   padding: 12px 16px;
-  padding-bottom: calc(12px + var(--safe-bottom)); /* Safe area untuk tombol HP */
+  padding-bottom: calc(12px + var(--safe-bottom));
   background: var(--bg-header);
   border-top: 1px solid var(--border-color);
   flex-shrink: 0;
@@ -562,17 +588,31 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
+  .falak-app {
+    position: relative;
+  }
+  
   .sidebar {
-    position: absolute;
-    left: -100%;
+    position: fixed;
     top: 0;
+    left: 0;
     bottom: 0;
-    z-index: 100;
-    transition: left 0.3s ease;
+    transform: translateX(-100%);
+    z-index: 1000;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
   }
   
   .sidebar.open {
-    left: 0;
+    transform: translateX(0);
+  }
+  
+  .sidebar-overlay {
+    display: block;
+    pointer-events: none;
+  }
+  
+  .sidebar-overlay.active {
+    pointer-events: auto;
   }
   
   .menu-toggle {
@@ -585,6 +625,7 @@ body {
     height: 100dvh;
     max-height: 100vh;
     max-height: 100dvh;
+    border-radius: 0;
   }
 }
 
@@ -592,6 +633,12 @@ body {
   .header {
     padding: 12px 16px;
     padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  }
+  
+  .menu-toggle {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
   }
   
   .logo {
@@ -621,6 +668,7 @@ body {
   
   .sidebar {
     width: 280px;
+    min-width: 280px;
   }
   
   .input-area {
@@ -644,4 +692,650 @@ body {
   .header {
     padding-top: max(16px, env(safe-area-inset-top));
   }
+}
+
+/* ========================= */
+/* DROPDOWN MENU HEADER       */
+/* ========================= */
+.header-menu {
+  position: relative;
+  margin-left: auto;
+}
+
+.header-menu-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #ffffff;
+  padding: 8px 10px;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.header-menu-btn:hover {
+  background: #00a884;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 45px;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  min-width: 180px;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 15px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  text-align: left;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background: #f5f5f5;
+}
+
+.dropdown-item i {
+  font-size: 18px;
+  width: 20px;
+}
+
+.dropdown-item:first-child {
+  border-bottom: 1px solid #eee;
+}
+
+.dropdown-item:last-child {
+  color: #e74c3c;
+}
+
+.dropdown-item:last-child i {
+  color: #e74c3c;
+}
+
+/* ========================= */
+/* MODE GELAP - PROFIL USER  */
+/* ========================= */
+:root {
+  --bg-primary: #1a1b2e;
+  --bg-secondary: #242540;
+  --bg-card: #2d2f4a;
+  --bg-hover: #353758;
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0b8;
+  --accent-1: #7c4dff;
+  --accent-2: #448aff;
+  --danger: #ff5252;
+  --success: #69f0ae;
+  --border: #3a3c5c;
+}
+
+.profil-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 15px;
+  margin: 10px;
+  background: linear-gradient(135deg, #2d2f4a 0%, #1a1b2e 100%);
+  border: 1px solid #3a3c5c;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.profil-user:hover {
+  border-color: #7c4dff;
+  box-shadow: 0 0 20px rgba(124, 77, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.profil-user::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(124, 77, 255, 0.05), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.profil-foto {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #242540;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: #7c4dff;
+  border: 2px solid #7c4dff;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.profil-user:hover .profil-foto {
+  border-color: #448aff;
+  box-shadow: 0 0 15px rgba(68, 138, 255, 0.3);
+}
+
+.profil-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profil-info {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.profil-nama {
+  font-weight: 600;
+  font-size: 14px;
+  color: #e0e0e0;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profil-alamat {
+  font-size: 11px;
+  color: #a0a0b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profil-edit-btn {
+  background: rgba(124, 77, 255, 0.1);
+  border: 1px solid rgba(124, 77, 255, 0.3);
+  font-size: 14px;
+  cursor: pointer;
+  color: #7c4dff;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.profil-edit-btn:hover {
+  background: rgba(124, 77, 255, 0.2);
+  border-color: #7c4dff;
+  transform: scale(1.05);
+}
+
+/* ========================= */
+/* DROPDOWN MENU GELAP       */
+/* ========================= */
+.header-menu-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #e0e0e0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.header-menu-btn:hover {
+  background: rgba(124, 77, 255, 0.1);
+  color: #7c4dff;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: #1e1f33;
+  border: 1px solid #3a3c5c;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  min-width: 200px;
+  z-index: 1000;
+  overflow: hidden;
+  animation: dropdownFade 0.2s ease;
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: #e0e0e0;
+  text-align: left;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.dropdown-item:hover {
+  background: #2d2f4a;
+  padding-left: 22px;
+}
+
+.dropdown-item i {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+  color: #a0a0b8;
+}
+
+.dropdown-item:hover i {
+  color: #7c4dff;
+}
+
+.dropdown-item:first-child {
+  border-bottom: 1px solid #3a3c5c;
+}
+
+.dropdown-item:last-child {
+  color: #ff5252;
+}
+
+.dropdown-item:last-child i {
+  color: #ff5252;
+}
+
+.dropdown-item:last-child:hover {
+  background: rgba(255, 82, 82, 0.1);
+}
+
+/* ========================= */
+/* MODAL GELAP               */
+/* ========================= */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: overlayFade 0.3s ease;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+@keyframes overlayFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: #1e1f33;
+  border: 1px solid #3a3c5c;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modalSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+@keyframes modalSlide {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px;
+  background: #242540;
+  border-bottom: 1px solid #3a3c5c;
+  border-radius: 16px 16px 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #e0e0e0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.modal-close {
+  background: rgba(124, 77, 255, 0.1);
+  border: 1px solid rgba(124, 77, 255, 0.3);
+  font-size: 16px;
+  cursor: pointer;
+  color: #a0a0b8;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: rgba(124, 77, 255, 0.2);
+  color: #e0e0e0;
+  transform: rotate(90deg);
+}
+
+.modal-body {
+  padding: 22px;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  font-size: 12px;
+  color: #a0a0b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #3a3c5c;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  background: #1a1b2e;
+  color: #e0e0e0;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #7c4dff;
+  background: #242540;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.1);
+}
+
+.form-group input::placeholder {
+  color: #555;
+}
+
+.form-group select option {
+  background: #1e1f33;
+  color: #e0e0e0;
+}
+
+/* Foto Upload */
+.foto-upload {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #1a1b2e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  margin: 0 auto;
+  border: 2px dashed #3a3c5c;
+  transition: all 0.3s ease;
+}
+
+.foto-upload:hover {
+  border-color: #7c4dff;
+  background: #242540;
+}
+
+.foto-upload img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.foto-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #555;
+  font-size: 11px;
+}
+
+.foto-placeholder i {
+  font-size: 28px;
+  color: #7c4dff;
+}
+
+/* Input GPS */
+.input-dengan-tombol {
+  display: flex;
+  gap: 8px;
+}
+
+.input-dengan-tombol input {
+  flex: 1;
+}
+
+.btn-gps {
+  padding: 11px 14px;
+  background: rgba(124, 77, 255, 0.1);
+  color: #7c4dff;
+  border: 1px solid rgba(124, 77, 255, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 45px;
+}
+
+.btn-gps:hover {
+  background: rgba(124, 77, 255, 0.2);
+  border-color: #7c4dff;
+  transform: scale(1.05);
+}
+
+/* Footer Modal */
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  padding: 18px 22px;
+  border-top: 1px solid #3a3c5c;
+  position: sticky;
+  bottom: 0;
+  background: #242540;
+  border-radius: 0 0 16px 16px;
+}
+
+.btn-simpan {
+  flex: 1;
+  padding: 13px;
+  background: linear-gradient(135deg, #7c4dff 0%, #448aff 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+.btn-simpan:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(124, 77, 255, 0.4);
+}
+
+.btn-simpan:active {
+  transform: translateY(0);
+}
+
+.btn-batal {
+  flex: 1;
+  padding: 13px;
+  background: #1a1b2e;
+  border: 1px solid #3a3c5c;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  color: #a0a0b8;
+}
+
+.btn-batal:hover {
+  background: #2d2f4a;
+  color: #e0e0e0;
+}
+
+/* ========================= */
+/* RESPONSIVE                */
+/* ========================= */
+@media (max-width: 768px) {
+  .profil-user {
+    padding: 12px;
+    margin: 8px;
+  }
+  
+  .profil-foto {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    font-size: 26px;
+  }
+  
+  .profil-nama {
+    font-size: 13px;
+  }
+  
+  .profil-alamat {
+    font-size: 10px;
+  }
+  
+  .modal-content {
+    max-width: 100%;
+    max-height: 95vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .profil-user {
+    padding: 10px;
+    margin: 5px;
+    gap: 8px;
+  }
+  
+  .profil-foto {
+    width: 35px;
+    height: 35px;
+    min-width: 35px;
+    font-size: 22px;
+  }
+  
+  .dropdown-menu {
+    min-width: 160px;
+    right: -10px;
+  }
+  
+  .modal-header {
+    padding: 15px 18px;
+  }
+  
+  .modal-body {
+    padding: 18px 15px;
+  }
+  
+  .modal-footer {
+    padding: 15px;
+  }
+}
+
+/* Scrollbar Gelap */
+.modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: #1a1b2e;
+  border-radius: 0 0 16px 0;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: #3a3c5c;
+  border-radius: 3px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: #7c4dff;
 }
