@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 // KONFIGURASI & SETTINGS
 // ==========================================
-const lokasi = {lat: -6.786, lon: 107.173, tz: 7};
+const lokasi = {lat: -6.100, lon: 106.614, tz: 7};
 let today = new Date();
 let currentMonth = today.getMonth();
 let currentYear = today.getFullYear();
@@ -883,3 +883,78 @@ function applyTheme(mode) {
 function resetTheme() {
   applyTheme("dark");
 }
+
+async function tampilkanNamaLokasi(lokasi) {
+  const el = document.getElementById("namaLokasi");
+
+  if (!lokasi || lokasi.lat == null || lokasi.lon == null) {
+    el.textContent = "Lokasi tidak tersedia";
+    return;
+  }
+
+  el.textContent = "Mencari lokasi...";
+
+  try {
+    const url =
+      `https://nominatim.openstreetmap.org/reverse` +
+      `?format=jsonv2` +
+      `&lat=${encodeURIComponent(lokasi.lat)}` +
+      `&lon=${encodeURIComponent(lokasi.lon)}` +
+      `&accept-language=id`;
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error("Gagal mengambil data lokasi");
+    }
+
+    const data = await response.json();
+    const a = data.address || {};
+
+    const desa =
+      a.village ||
+      a.hamlet ||
+      "";
+
+    const kecamatan =
+      a.municipality ||
+      a.city_district ||
+      a.suburb ||
+      "";
+
+    const kabupaten =
+      a.regency ||
+      a.county ||
+      a.city ||
+      "";
+
+    const provinsi =
+      a.state ||
+      "";
+
+    let hasil = "";
+
+    if (desa) {
+      hasil += `Desa ${desa}`;
+    }
+
+    if (kecamatan) {
+      hasil += hasil ? ` Kecamatan ${kecamatan}` : `Kec. ${kecamatan}`;
+    }
+
+    if (kabupaten) {
+      hasil += hasil ? ` ${kabupaten}` : `Kab. ${kabupaten}`;
+    }
+
+    if (provinsi) {
+      hasil += hasil ? `, ${provinsi}` : provinsi;
+    }
+
+    el.textContent =
+      hasil || data.display_name || "Lokasi tidak ditemukan";
+
+  } catch (error) {
+    el.textContent = "Nama lokasi tidak tersedia";
+  }
+}
+tampilkanNamaLokasi(lokasi);

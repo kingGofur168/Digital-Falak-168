@@ -55,7 +55,7 @@ body {
   background:var(--bg);
   color:var(--text);
   padding-bottom:80px;
-  font-family: font-family: "Google Sans", "Roboto", "Segoe UI", "Open Sans", sans-serif;;
+  font-family: "Google Sans", "Roboto", "Segoe UI", "Open Sans", sans-serif;
 }
 
 #app {
@@ -1257,4 +1257,42 @@ body.light .day.jumat .hijri {
 
 .day:hover .date {
     font-weight: bold;
+}
+
+#namaLokasi {
+  margin-top: 5px;
+}
+
+#namaLokasi {
+  /* Pengaturan dasar */
+  white-space: nowrap;
+  display: block;
+  width: 100%;
+  font-size: 14px;
+  font-weight: 600;
+  position: relative;
+  
+  /* Animasi berjalan dari kanan ke kiri */
+  animation: jalanKiri 8s linear infinite;
+}
+
+@keyframes jalanKiri {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(0%);
+    opacity: 1; /* Separuh hilang di tengah */
+  }
+  90% {
+    opacity: 2;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
 }

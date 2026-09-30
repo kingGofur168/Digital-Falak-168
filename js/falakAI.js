@@ -4,7 +4,6 @@ const sendButton = document.getElementById("sendBtn");
 
 const WORKER_URL = "https://purple-pond-1b94.abdulghofur234234234.workers.dev/";
 
-// API Key - Harus sama dengan di Worker
 const API_KEY = "ngobroldenganfalakai";
 
 const defaultSettings = {
