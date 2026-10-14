@@ -115,7 +115,7 @@ const normalisasi = teks =>
   teks.toLowerCase().trim().replace(/[?!.,]/g, "");
 
 const jawabanYa = teks =>
-  ["ya", "iya", "y", "betul", "benar", "oke", "ok"].includes(
+  ["ya", "iya", "y", "ye", "betul", "benar", "oke", "ok"].includes(
     normalisasi(teks)
   );
 

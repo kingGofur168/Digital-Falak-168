@@ -79,6 +79,25 @@ body {
   }
 }
 
+.header-menu {
+  position: relative;
+  margin-left: auto;
+}
+.header-menu-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #e0e0e0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.header-menu-btn:hover {
+  background: rgba(124, 77, 255, 0.1);
+  color: #7c4dff;
+}
 .sholat-list .row{
   display:flex;
   justify-content:space-between;
@@ -1271,6 +1290,7 @@ body.light .day.jumat .hijri {
   font-size: 14px;
   font-weight: 600;
   position: relative;
+  color:#0056b3;
   
   /* Animasi berjalan dari kanan ke kiri */
   animation: jalanKiri 8s linear infinite;

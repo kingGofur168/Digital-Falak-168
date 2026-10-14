@@ -34,7 +34,7 @@ function hisabMK(data) {
         ${tbl("20. Irtifa Hilal", keDMS(irtifaHilal))}
         ${row("21. Elongasi (tambahan)", keDMS(elongasi))}
       </div>
-      <span class="sub">Ringkasan</span>
+      <span class="sub">Walhasil</span>
       <div class="hisab-list">
         ${tbl("Awal Bulan", `${bulanList[m-1]} ${y} H`)}
         ${tbl("Jatuh Pada Hari", `${jthab} ${data.pasaran}, ${data.tanggal} ${data.namaBulanMasehi} ${data.tahunMasehi} M`)}
